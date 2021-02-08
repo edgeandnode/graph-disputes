@@ -1,4 +1,4 @@
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, ContractTransaction, Signer, providers } from 'ethers'
 import { GraphToken } from '@graphprotocol/contracts/dist/typechain/contracts/GraphToken'
 
 export const approveIfRequired = async (
@@ -6,10 +6,23 @@ export const approveIfRequired = async (
   sender: Signer,
   spender: string,
   amount: BigNumber,
-): Promise<void> => {
+): Promise<providers.TransactionReceipt> | null => {
   const owner = await sender.getAddress()
   const allowance = await token.allowance(owner, spender)
   if (allowance.lt(amount)) {
-    await token.connect(sender).approve(spender, amount)
+    const tx = await token.connect(sender).approve(spender, amount)
+    return waitTransaction(tx)
   }
+  return null
+}
+
+export const waitTransaction = async (
+  tx: ContractTransaction,
+): Promise<providers.TransactionReceipt> => {
+  console.log(`Transaction sent: ${tx.hash}`)
+  const receipt = await tx.wait()
+  receipt.status
+    ? console.log(`Transaction succeeded: ${tx.hash}`)
+    : console.log(`Transaction failed: ${tx.hash}`)
+  return receipt
 }

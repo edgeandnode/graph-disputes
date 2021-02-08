@@ -8,11 +8,7 @@ export const getDisputes = async (networkSubgraph: Client): Promise<any> => {
     .query(
       gql`
         {
-          disputes(
-            where: { status: "Accepted" }
-            orderBy: "createdAt"
-            orderDirection: "asc"
-          ) {
+          disputes(orderBy: "createdAt", orderDirection: "asc") {
             id
             type
             status

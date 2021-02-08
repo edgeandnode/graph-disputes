@@ -21,7 +21,7 @@ const disputeToRow = dispute => {
   }
 
   return [
-    dispute.type + '\n' + dispute.id,
+    dispute.type + ':' + dispute.id,
     styleStatus(dispute.status),
     dispute.indexer.id,
     dispute.fisherman.id,
@@ -66,7 +66,7 @@ export const listCommand = {
 
     const table = new Table({
       head: ['ID', 'Status', 'Indexer', 'Submitter'],
-      colWidths: [68, 10, 44, 44],
+      colWidths: [68, 15, 44, 44],
     })
 
     const disputes = await getDisputes(networkSubgraph)

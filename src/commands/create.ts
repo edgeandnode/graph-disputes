@@ -9,7 +9,8 @@ import yargs, { Argv } from 'yargs'
 import { parseGRT } from '@graphprotocol/common-ts'
 
 import { setupEnv } from '../env'
-import { approveIfRequired } from '../network'
+import { approveIfRequired, waitTransaction } from '../network'
+import { askConfirm } from '../utils'
 
 export const createIndexingCommand = {
   command: 'indexing <allocationID> <deposit>',
@@ -31,19 +32,37 @@ export const createIndexingCommand = {
     const { provider, contracts } = await setupEnv(argv)
 
     const allocationID = argv.allocationID
-    const depositWei = parseGRT(argv.deposit)
+    const deposit = argv.deposit
+    const depositWei = parseGRT(deposit)
     const sender = new Wallet(argv.account, provider)
 
-    await approveIfRequired(
+    // Confirm
+    if (
+      !(await askConfirm(
+        `You are about to dispute allocation ${allocationID} with a ${deposit} GRT bond, confirm?`,
+      ))
+    ) {
+      process.exit(1)
+    }
+
+    // Approve
+    console.log(`Approving ${deposit} GRT...`)
+    const approvalReceipt = await approveIfRequired(
       contracts.token,
       sender,
       contracts.disputeManager.address,
       depositWei,
     )
+    console.log(
+      approvalReceipt ? 'Deposit approved' : 'Skipped approval, not needed',
+    )
+
+    // Dispute
+    console.log(`Disputing ${allocationID}...`)
     const tx = await contracts.disputeManager
       .connect(sender)
       .createIndexingDispute(allocationID, depositWei)
-    await tx.wait()
+    await waitTransaction(tx)
   },
 }
 
