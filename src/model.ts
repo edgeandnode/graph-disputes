@@ -2,8 +2,62 @@
 
 import { Client } from '@urql/core'
 import gql from 'graphql-tag'
+export interface Epoch {
+  id: number
+  startBlock: number
+}
+export interface Allocation {
+  id: string
+  createdAtEpoch: number
+  createdAtBlockHash: number
+  closedAtEpoch: number
+  closedAtBlockHash: number
+  closedAtBlockNumber: number
+  poi: string
+}
 
-export const getDisputes = async (networkSubgraph: Client): Promise<any> => {
+export interface SubgraphDeployment {
+  id: string
+}
+export interface Fisherman {
+  id: string
+}
+export interface Indexer {
+  id: string
+}
+export interface Dispute {
+  id: string
+  type: string
+  status: string
+  allocation: Allocation
+  subgraphDeployment: SubgraphDeployment
+  indexer: Indexer
+  fisherman: Fisherman
+}
+
+export const getEpoch = async (
+  networkSubgraph: Client,
+  epochID: number,
+): Promise<Epoch> => {
+  const result = await networkSubgraph
+    .query(
+      gql`
+        query($epochID: Int!) {
+          epoch(id: $epochID) {
+            id
+            startBlock
+          }
+        }
+      `,
+      { epochID },
+    )
+    .toPromise()
+  return result.data.epoch
+}
+
+export const getDisputes = async (
+  networkSubgraph: Client,
+): Promise<Dispute[]> => {
   const result = await networkSubgraph
     .query(
       gql`
@@ -12,6 +66,18 @@ export const getDisputes = async (networkSubgraph: Client): Promise<any> => {
             id
             type
             status
+            allocation {
+              id
+              createdAtEpoch
+              createdAtBlockHash
+              closedAtEpoch
+              closedAtBlockHash
+              closedAtBlockNumber
+              poi
+            }
+            subgraphDeployment {
+              id
+            }
             indexer {
               id
             }
@@ -29,7 +95,7 @@ export const getDisputes = async (networkSubgraph: Client): Promise<any> => {
 export const getDispute = async (
   networkSubgraph: Client,
   disputeID: string,
-): Promise<any> => {
+): Promise<Dispute> => {
   const result = await networkSubgraph
     .query(
       gql`

@@ -1,31 +1,87 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Table from 'cli-table'
+import treeify from 'treeify'
 import chalk from 'chalk'
 import { Argv } from 'yargs'
+import { providers } from 'ethers'
+import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
 import { setupEnv } from '../env'
-import { getDisputes } from '../model'
+import { getDisputes, getEpoch, Dispute } from '../model'
+import { PoiChecker } from '../poi'
+import { Client } from '@urql/core'
 
-const disputeToRow = dispute => {
-  function styleStatus(status) {
-    switch (status) {
-      case 'Accepted':
-        return chalk.greenBright(dispute.status)
-      case 'Rejected':
-        return chalk.redBright(dispute.status)
-      case 'Draw':
-        return chalk.yellowBright(dispute.status)
-    }
-    return chalk.grey(dispute.status)
+function styleDisputeStatus(status) {
+  switch (status) {
+    case 'Accepted':
+      return chalk.greenBright(status)
+    case 'Rejected':
+      return chalk.redBright(status)
+    case 'Draw':
+      return chalk.yellowBright(status)
   }
+  return chalk.dim(status)
+}
 
-  return [
-    dispute.type + ':' + dispute.id,
-    styleStatus(dispute.status),
+const disputeToEntry = async (
+  dispute: Dispute,
+  networkSubgraph: Client,
+  poiChecker: PoiChecker,
+  provider: providers.Provider,
+) => {
+  const subgraphDeployment = new SubgraphDeploymentID(
+    dispute.subgraphDeployment.id,
+  )
+
+  const [currEpoch, prevEpoch] = await Promise.all([
+    getEpoch(networkSubgraph, dispute.allocation.closedAtEpoch),
+    getEpoch(networkSubgraph, dispute.allocation.closedAtEpoch - 1),
+  ])
+
+  const currBlock = await provider.getBlock(currEpoch.startBlock)
+  const currPOI = await poiChecker.getPoi(
+    subgraphDeployment,
+    currBlock,
     dispute.indexer.id,
-    dispute.fisherman.id,
-  ]
+  )
+  const prevBlock = await provider.getBlock(currEpoch.startBlock)
+  const prevPOI = await poiChecker.getPoi(
+    subgraphDeployment,
+    prevBlock,
+    dispute.indexer.id,
+  )
+
+  return {
+    type: dispute.type,
+    status: styleDisputeStatus(dispute.status),
+    indexer: chalk.underline.whiteBright(dispute.indexer.id),
+    fisherman: chalk.underline.whiteBright(dispute.fisherman.id),
+    subgraphDeployment: {
+      id: `${subgraphDeployment.bytes32} (${subgraphDeployment.ipfsHash})`,
+    },
+    allocation: {
+      id: chalk.underline.whiteBright(dispute.allocation.id),
+      createdAtEpoch: dispute.allocation.createdAtEpoch,
+      createdAtBlock: dispute.allocation.createdAtBlockHash,
+      closedAtEpoch: dispute.allocation.closedAtEpoch,
+      closedAtBlock: `${dispute.allocation.closedAtBlockHash} (#${dispute.allocation.closedAtBlockNumber})`,
+      poi: dispute.allocation.poi,
+    },
+    referencePOI: {
+      currEpoch: {
+        id: currEpoch.id,
+        startBlock: currEpoch.startBlock,
+        poi: currPOI,
+        match: chalk.red(currPOI === dispute.allocation.poi),
+      },
+      prevEpoch: {
+        id: prevEpoch.id,
+        startBlock: prevEpoch.startBlock,
+        poi: prevPOI,
+        match: chalk.red(prevPOI === dispute.allocation.poi),
+      },
+    },
+  }
 }
 
 export const listCommand = {
@@ -47,10 +103,16 @@ export const listCommand = {
         group: 'Ethereum',
       })
       .option('network-subgraph-endpoint', {
-        description: 'Endpoint to query the network subgraph from',
+        description: 'Endpoint to query the network subgraph',
         type: 'string',
         required: true,
         group: 'Network Subgraph',
+      })
+      .option('trusted-subgraph-endpoint', {
+        description: 'Endpoint to query the trusted indexig proofs',
+        type: 'string',
+        required: true,
+        group: 'Trusted Subgraph',
       })
       .option('log-level', {
         description: 'Log level',
@@ -62,17 +124,35 @@ export const listCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const { contracts, networkSubgraph } = await setupEnv(argv)
+    const { provider, networkSubgraph, poiChecker } = await setupEnv(argv)
 
-    const table = new Table({
-      head: ['ID', 'Status', 'Indexer', 'Submitter'],
-      colWidths: [68, 15, 44, 44],
-    })
-
+    // Get disputes to list
+    const data = {}
     const disputes = await getDisputes(networkSubgraph)
+
+    // Process each dispute and populate additional information
     for (const dispute of disputes) {
-      table.push(disputeToRow(dispute))
+      const disputeEntry = await disputeToEntry(
+        dispute,
+        networkSubgraph,
+        poiChecker,
+        provider,
+      )
+      data[dispute.id] = disputeEntry
+
+      // DEBUG - TODO: make it optional. Use a promise to make it faster
+      const poiList = await poiChecker.getPoiRange(
+        new SubgraphDeploymentID(dispute.subgraphDeployment.id),
+        8365040,
+        8365050,
+        dispute.indexer.id,
+      )
+      console.log(poiList)
     }
-    console.log(table.toString())
+
+    // Display disputes
+    console.log('Disputes')
+    console.log('--------')
+    console.log(treeify.asTree(data, true, true))
   },
 }
