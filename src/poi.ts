@@ -2,8 +2,12 @@ import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 import { Client } from '@urql/core'
 import { providers } from 'ethers'
 import gql from 'graphql-tag'
+import PQueue from 'p-queue'
 
-export type POI = string
+export interface Poi {
+  proof: string
+  block: EthereumBlock
+}
 
 export interface EthereumBlock {
   number: number
@@ -24,30 +28,45 @@ export class PoiChecker {
     startBlock: number,
     endBlock: number,
     indexerAddress: string,
-  ): Promise<{ [key: number]: POI[] }> => {
+  ): Promise<{ [key: number]: Poi[] }> => {
+    const poiList = []
+    await this.getPoiRangeStream(
+      deployment,
+      startBlock,
+      endBlock,
+      indexerAddress,
+      (poi: Poi) => poiList.push(poi),
+    )
+    return poiList
+  }
+
+  getPoiRangeStream = async (
+    deployment: SubgraphDeploymentID,
+    startBlock: number,
+    endBlock: number,
+    indexerAddress: string,
+    callback: (poi: Poi) => void,
+  ): Promise<void> => {
     const blockRange = Array.from(
       { length: endBlock - startBlock },
       (v, k) => k + startBlock,
     )
 
-    const poiList = {}
+    const queue = new PQueue({ concurrency: 6 })
     for (const blockNumber of blockRange) {
-      const block = await this.provider.getBlock(blockNumber)
-      poiList[blockNumber] = await this.getPoi(
-        deployment,
-        block,
-        indexerAddress,
-      )
+      queue.add(async () => {
+        const block = await this.provider.getBlock(blockNumber)
+        callback(await this.getPoi(deployment, block, indexerAddress))
+      })
     }
-
-    return poiList
+    await queue.onIdle()
   }
 
   getPoi = async (
     deployment: SubgraphDeploymentID,
     block: EthereumBlock,
     indexerAddress: string,
-  ): Promise<POI> => {
+  ): Promise<Poi> => {
     const result = await this.subgraph
       .query(
         gql`
@@ -73,6 +92,13 @@ export class PoiChecker {
         },
       )
       .toPromise()
-    return result.data.proofOfIndexing
+
+    if (!result.data) {
+      return null
+    }
+    return {
+      proof: result.data.proofOfIndexing,
+      block,
+    }
   }
 }

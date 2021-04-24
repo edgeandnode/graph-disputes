@@ -104,6 +104,18 @@ export const getDispute = async (
             id
             type
             status
+            allocation {
+              id
+              createdAtEpoch
+              createdAtBlockHash
+              closedAtEpoch
+              closedAtBlockHash
+              closedAtBlockNumber
+              poi
+            }
+            subgraphDeployment {
+              id
+            }
             indexer {
               id
             }

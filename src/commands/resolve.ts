@@ -7,7 +7,7 @@ import chalk from 'chalk'
 import { Wallet } from 'ethers'
 import yargs, { Argv } from 'yargs'
 import { Client } from '@urql/core'
-import { NetworkContracts, parseGRT } from '@graphprotocol/common-ts'
+import { NetworkContracts, formatGRT } from '@graphprotocol/common-ts'
 
 import { setupEnv } from '../env'
 import { getDispute } from '../model'
@@ -57,6 +57,8 @@ export const acceptDisputeCommand = {
     const rewardsAmount = await contracts.disputeManager.getTokensToReward(
       dispute.indexer.id,
     )
+    console.log('slash:', formatGRT(slashedAmount))
+    console.log('rewards:', formatGRT(rewardsAmount))
 
     // TODO: show how much the indexer will be slashed
     // TODO: show the bond the fisherman will get
@@ -117,5 +119,8 @@ export const rejectDisputeCommand = {
       .connect(sender)
       .rejectDispute(disputeID)
     await waitTransaction(tx)
+
+    // TODO: initiate a gnosis transaction for signing
+    // print raw data
   },
 }
