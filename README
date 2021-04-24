@@ -1,1 +1,4 @@
-# Graph Arbitrator CLI
+# Graph Disputes CLI
+
+This scripts allows managing disputes for wrong indexing proofs and bad query responses.
+
