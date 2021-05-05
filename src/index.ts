@@ -1,9 +1,10 @@
 import * as yargs from 'yargs'
 
 import { createCommand } from './commands/create'
-import { acceptDisputeCommand, rejectDisputeCommand } from './commands/resolve'
+import { resolveCommand } from './commands/resolve'
 import { listCommand } from './commands/list'
 import { showCommand } from './commands/show'
+import { inspectCommand } from './commands/inspect'
 
 yargs
   .scriptName('graph-disputes')
@@ -42,7 +43,7 @@ yargs
   .command(createCommand)
   .command(listCommand)
   .command(showCommand)
-  .command(acceptDisputeCommand)
-  .command(rejectDisputeCommand)
+  .command(resolveCommand)
+  .command(inspectCommand)
   .demandCommand(1, 'Choose a command from the above list')
   .help().argv

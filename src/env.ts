@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Argv } from 'yargs'
-import { providers } from 'ethers'
+import { Wallet, providers } from 'ethers'
 import fetch from 'isomorphic-fetch'
 import { Client, createClient } from '@urql/core'
 import { NetworkContracts, connectContracts } from '@graphprotocol/common-ts'
@@ -14,6 +14,7 @@ export interface Environment {
   networkSubgraph: Client
   trustedSubgraph: Client
   poiChecker: PoiChecker
+  account?: Wallet
 }
 
 export const setupEnv = async (
@@ -67,11 +68,15 @@ export const setupEnv = async (
   // POI Checker
   const poiChecker = new PoiChecker(provider, trustedSubgraph)
 
+  // Load account if present
+  const account = argv.account && new Wallet(argv.account, provider)
+
   return {
     provider,
     contracts,
     networkSubgraph,
     trustedSubgraph,
     poiChecker,
+    account,
   }
 }

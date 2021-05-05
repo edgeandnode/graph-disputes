@@ -5,7 +5,7 @@ import { SingleBar } from 'cli-progress'
 import { Argv } from 'yargs'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
-import { disputeToEntry } from '../dispute'
+import { populateEntry } from '../dispute'
 import { setupEnv } from '../env'
 import { getDispute } from '../model'
 import { Poi } from '../poi'
@@ -24,19 +24,14 @@ export const showCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const { provider, networkSubgraph, poiChecker } = await setupEnv(argv)
+    const env = await setupEnv(argv)
 
     // Parse arguments
     const disputeID = argv.id
 
     // Get dispute
-    const dispute = await getDispute(networkSubgraph, disputeID)
-    const disputeEntry = await disputeToEntry(
-      dispute,
-      networkSubgraph,
-      poiChecker,
-      provider,
-    )
+    const dispute = await getDispute(env.networkSubgraph, disputeID)
+    const disputeEntry = await populateEntry(dispute, env, true)
     console.log(`Dispute #${disputeID}`)
     console.log('-------')
     console.log(treeify.asTree({ ...disputeEntry }, true, true))
@@ -60,7 +55,7 @@ export const showCommand = {
       bar.start(blockDiff, 0)
       console.log(`PoIs for range (${startBlock} -> ${endBlock})`)
       console.log('---------------------------------------------\n')
-      await poiChecker.getPoiRangeStream(
+      await env.poiChecker.getPoiRangeStream(
         new SubgraphDeploymentID(dispute.subgraphDeployment.id),
         startBlock,
         endBlock,

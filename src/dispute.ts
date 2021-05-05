@@ -1,10 +1,8 @@
 import chalk from 'chalk'
-import { providers } from 'ethers'
-import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
+import { formatGRT, SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
 import { getEpoch, Dispute } from './model'
-import { PoiChecker } from './poi'
-import { Client } from '@urql/core'
+import { Environment } from './env'
 
 function styleBoolean(value: boolean) {
   return value ? chalk.greenBright(value) : chalk.redBright(value)
@@ -32,13 +30,13 @@ function styleDisputeStatus(status: string) {
   return chalk.dim(status)
 }
 
-export const disputeToEntry = async (
+export const populateEntry = async (
   dispute: Dispute,
-  networkSubgraph: Client,
-  poiChecker: PoiChecker,
-  provider: providers.Provider,
+  env: Environment,
   extended = false,
 ): Promise<any> => {
+  const { networkSubgraph, provider, poiChecker, contracts } = env
+
   const subgraphDeployment = new SubgraphDeploymentID(
     dispute.subgraphDeployment.id,
   )
@@ -58,6 +56,7 @@ export const disputeToEntry = async (
     poiChecker.getPoi(subgraphDeployment, lastBlock, dispute.indexer.id),
     poiChecker.getPoi(subgraphDeployment, prevBlock, dispute.indexer.id),
   ])
+  const hasProof = lastPoi && prevPoi
 
   // Assemble dispute data
   const disputeEntry = {
@@ -77,31 +76,44 @@ export const disputeToEntry = async (
     },
     POI: {
       submitted: dispute.allocation.poi,
-      match:
-        lastPoi && prevPoi
-          ? styleBoolean(
-              lastPoi.proof === dispute.allocation.poi ||
-                prevPoi.proof === dispute.allocation.poi,
-            )
-          : chalk.redBright('Not-Found'),
+      match: hasProof
+        ? styleBoolean(
+            lastPoi.proof === dispute.allocation.poi ||
+              prevPoi.proof === dispute.allocation.poi,
+          )
+        : chalk.redBright('Not-Found'),
     },
   }
 
   // Extended information
   if (extended) {
-    disputeEntry.POI['Reference'] = {
-      lastEpoch: {
-        id: lastEpoch.id,
-        startBlock: lastEpoch.startBlock,
-        POI: lastPoi.proof,
-        match: styleBoolean(lastPoi.proof === dispute.allocation.poi),
-      },
-      prevEpoch: {
-        id: prevEpoch.id,
-        startBlock: prevEpoch.startBlock,
-        POI: prevPoi.proof,
-        match: styleBoolean(prevPoi.proof === dispute.allocation.poi),
-      },
+    // Reference POI
+    if (hasProof) {
+      disputeEntry.POI['Reference'] = {
+        lastEpoch: {
+          id: lastEpoch.id,
+          startBlock: lastEpoch.startBlock,
+          POI: lastPoi.proof,
+          match: styleBoolean(lastPoi.proof === dispute.allocation.poi),
+        },
+        prevEpoch: {
+          id: prevEpoch.id,
+          startBlock: prevEpoch.startBlock,
+          POI: prevPoi.proof,
+          match: styleBoolean(prevPoi.proof === dispute.allocation.poi),
+        },
+      }
+    }
+
+    // Rewards
+    const disputeManager = contracts.disputeManager
+    const [slashedAmount, rewardsAmount] = await Promise.all([
+      disputeManager.getTokensToSlash(dispute.indexer.id),
+      disputeManager.getTokensToReward(dispute.indexer.id),
+    ])
+    disputeEntry['Rewards'] = {
+      slashAmount: formatGRT(slashedAmount),
+      rewardsAmount: formatGRT(rewardsAmount),
     }
   }
 

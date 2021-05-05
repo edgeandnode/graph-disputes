@@ -14,6 +14,8 @@ export interface Allocation {
   closedAtBlockHash: number
   closedAtBlockNumber: number
   poi: string
+  indexer?: Indexer
+  subgraphDeployment?: SubgraphDeployment
 }
 
 export interface SubgraphDeployment {
@@ -53,6 +55,37 @@ export const getEpoch = async (
     )
     .toPromise()
   return result.data.epoch
+}
+
+export const getAllocation = async (
+  networkSubgraph: Client,
+  allocationID: string,
+): Promise<Allocation> => {
+  const result = await networkSubgraph
+    .query(
+      gql`
+        query($allocationID: String!) {
+          allocation(id: $allocationID) {
+            id
+            createdAtEpoch
+            createdAtBlockHash
+            closedAtEpoch
+            closedAtBlockHash
+            closedAtBlockNumber
+            poi
+            subgraphDeployment {
+              id
+            }
+            indexer {
+              id
+            }
+          }
+        }
+      `,
+      { allocationID },
+    )
+    .toPromise()
+  return result.data.allocation
 }
 
 export const getDisputes = async (
