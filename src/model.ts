@@ -31,6 +31,7 @@ export interface Dispute {
   id: string
   type: string
   status: string
+  createdAt: number
   allocation: Allocation
   subgraphDeployment: SubgraphDeployment
   indexer: Indexer
@@ -99,6 +100,7 @@ export const getDisputes = async (
             id
             type
             status
+            createdAt
             allocation {
               id
               createdAtEpoch
@@ -137,6 +139,7 @@ export const getDispute = async (
             id
             type
             status
+            createdAt
             allocation {
               id
               createdAtEpoch

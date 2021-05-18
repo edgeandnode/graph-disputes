@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { formatGRT, SubgraphDeploymentID } from '@graphprotocol/common-ts'
+import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
 import { getEpoch, Dispute } from './model'
 import { Environment } from './env'
@@ -30,12 +30,18 @@ function styleDisputeStatus(status: string) {
   return chalk.dim(status)
 }
 
+const DAY_SECONDS = 60 * 60 * 24
+
+function relativeDays(ts: number) {
+  return ((+new Date() / 1000 - ts) / DAY_SECONDS).toFixed(2)
+}
+
 export const populateEntry = async (
   dispute: Dispute,
   env: Environment,
   extended = false,
 ): Promise<any> => {
-  const { networkSubgraph, provider, poiChecker, contracts } = env
+  const { networkSubgraph, provider, poiChecker } = env
 
   const subgraphDeployment = new SubgraphDeploymentID(
     dispute.subgraphDeployment.id,
@@ -58,17 +64,19 @@ export const populateEntry = async (
   ])
   const hasProof = lastPoi && prevPoi
 
+  const lastActionAgo = relativeDays(dispute.createdAt)
+
   // Assemble dispute data
   const disputeEntry = {
     Type: styleType(dispute.type),
-    Status: styleDisputeStatus(dispute.status),
-    Indexer: chalk.underline.whiteBright(dispute.indexer.id),
-    Fisherman: chalk.underline.whiteBright(dispute.fisherman.id),
+    Status: `${styleDisputeStatus(dispute.status)} (${lastActionAgo} days ago)`,
+    Indexer: chalk.cyanBright(dispute.indexer.id),
+    Fisherman: chalk.cyanBright(dispute.fisherman.id),
     SubgraphDeployment: {
       id: `${subgraphDeployment.bytes32} (${subgraphDeployment.ipfsHash})`,
     },
     Allocation: {
-      id: chalk.underline.whiteBright(dispute.allocation.id),
+      id: chalk.cyanBright(dispute.allocation.id),
       createdAtEpoch: dispute.allocation.createdAtEpoch,
       createdAtBlock: dispute.allocation.createdAtBlockHash,
       closedAtEpoch: dispute.allocation.closedAtEpoch,
@@ -106,15 +114,15 @@ export const populateEntry = async (
     }
 
     // Rewards
-    const disputeManager = contracts.disputeManager
-    const [slashedAmount, rewardsAmount] = await Promise.all([
-      disputeManager.getTokensToSlash(dispute.indexer.id),
-      disputeManager.getTokensToReward(dispute.indexer.id),
-    ])
-    disputeEntry['Rewards'] = {
-      slashAmount: formatGRT(slashedAmount),
-      rewardsAmount: formatGRT(rewardsAmount),
-    }
+    // const disputeManager = contracts.disputeManager
+    // const [slashedAmount, rewardsAmount] = await Promise.all([
+    //   disputeManager.getTokensToSlash(dispute.indexer.id),
+    //   disputeManager.getTokensToReward(dispute.indexer.id),
+    // ])
+    // disputeEntry['Rewards'] = {
+    //   slashAmount: formatGRT(slashedAmount),
+    //   rewardsAmount: formatGRT(rewardsAmount),
+    // }
   }
 
   return disputeEntry

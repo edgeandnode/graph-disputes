@@ -1,5 +1,5 @@
 import treeify from 'treeify'
-import { DisputeManager } from '@graphprotocol/contracts/dist/typechain/contracts/DisputeManager'
+import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManager'
 
 import { populateEntry } from './dispute'
 import { Environment } from './env'

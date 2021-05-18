@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import treeify from 'treeify'
+import chalk from 'chalk'
 import { Argv } from 'yargs'
 
 import { populateEntry } from '../dispute'
@@ -23,7 +24,7 @@ export const listCommand = {
     // Process each dispute and populate additional information
     for (const dispute of disputes) {
       const disputeEntry = await populateEntry(dispute, env, false)
-      data[dispute.id] = disputeEntry
+      data[chalk.whiteBright.underline(dispute.id)] = disputeEntry
     }
 
     // Display disputes

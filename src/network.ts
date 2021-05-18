@@ -1,5 +1,5 @@
 import { BigNumber, ContractTransaction, Signer, providers } from 'ethers'
-import { GraphToken } from '@graphprotocol/contracts/dist/typechain/contracts/GraphToken'
+import { GraphToken } from '@graphprotocol/contracts/dist/types/GraphToken'
 
 export const approveIfRequired = async (
   token: GraphToken,
