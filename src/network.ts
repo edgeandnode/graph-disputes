@@ -1,6 +1,8 @@
 import { BigNumber, ContractTransaction, Signer, providers } from 'ethers'
 import { GraphToken } from '@graphprotocol/contracts/dist/types/GraphToken'
 
+import { log } from './logging'
+
 export const approveIfRequired = async (
   token: GraphToken,
   sender: Signer,
@@ -19,10 +21,10 @@ export const approveIfRequired = async (
 export const waitTransaction = async (
   tx: ContractTransaction,
 ): Promise<providers.TransactionReceipt> => {
-  console.log(`Transaction sent: ${tx.hash}`)
+  log.info(`Transaction sent: ${tx.hash}`)
   const receipt = await tx.wait()
   receipt.status
-    ? console.log(`Transaction succeeded: ${tx.hash}`)
-    : console.log(`Transaction failed: ${tx.hash}`)
+    ? log.info(`Transaction succeeded: ${tx.hash}`)
+    : log.info(`Transaction failed: ${tx.hash}`)
   return receipt
 }

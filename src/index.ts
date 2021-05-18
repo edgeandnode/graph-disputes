@@ -1,5 +1,6 @@
 import * as yargs from 'yargs'
 
+import { setupCommand } from './commands/setup'
 import { createCommand } from './commands/create'
 import { resolveCommand } from './commands/resolve'
 import { listCommand } from './commands/list'
@@ -40,6 +41,7 @@ yargs
     default: 'debug',
     group: 'Logging',
   })
+  .command(setupCommand)
   .command(createCommand)
   .command(listCommand)
   .command(showCommand)

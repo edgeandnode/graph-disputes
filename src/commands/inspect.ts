@@ -4,6 +4,7 @@ import treeify from 'treeify'
 import { Argv } from 'yargs'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
+import { log } from '../logging'
 import { populateEntry } from '../dispute'
 import { setupEnv } from '../env'
 import { getAllocation } from '../model'
@@ -28,6 +29,6 @@ export const inspectCommand = {
 
     // Get dispute
     const allocation = await getAllocation(env.networkSubgraph, allocationID)
-    console.log(allocation)
+    log.info(allocation)
   },
 }

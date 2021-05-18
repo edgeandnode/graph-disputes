@@ -4,6 +4,7 @@ import treeify from 'treeify'
 import chalk from 'chalk'
 import { Argv } from 'yargs'
 
+import { log } from '../logging'
 import { populateEntry } from '../dispute'
 import { setupEnv } from '../env'
 import { getDisputes } from '../model'
@@ -19,7 +20,7 @@ export const listCommand = {
     // Get disputes to list
     const data = {}
     const disputes = await getDisputes(env.networkSubgraph)
-    console.log(disputes.length, 'disputes found')
+    log.info(`Disputes found: ${disputes.length}`)
 
     // Process each dispute and populate additional information
     for (const dispute of disputes) {
@@ -28,8 +29,8 @@ export const listCommand = {
     }
 
     // Display disputes
-    console.log('Disputes')
-    console.log('--------')
-    console.log(treeify.asTree(data, true, true))
+    log.info('Disputes')
+    log.info('--------')
+    log.info(treeify.asTree(data, true, true))
   },
 }

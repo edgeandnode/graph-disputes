@@ -1,6 +1,7 @@
 import treeify from 'treeify'
 import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManager'
 
+import { log } from './logging'
 import { populateEntry } from './dispute'
 import { Environment } from './env'
 import { getDispute } from './model'
@@ -52,7 +53,7 @@ export class DisputeResolver {
 
     const dispute = await getDispute(networkSubgraph, disputeID)
     const disputeEntry = await populateEntry(dispute, this.env, true)
-    console.log(treeify.asTree(disputeEntry, true, true))
+    log.info(treeify.asTree(disputeEntry, true, true))
 
     // TODO: show how much the indexer will be slashed
     // TODO: show the bond the fisherman will get
@@ -60,7 +61,7 @@ export class DisputeResolver {
 
   @confirmResolve
   async accept(disputeID: string): Promise<void> {
-    console.log(`Accepting dispute ${disputeID}...`)
+    log.info(`Accepting dispute ${disputeID}...`)
     const tx = await this.disputeManager
       .connect(this.env.account)
       .acceptDispute(disputeID)
@@ -69,7 +70,7 @@ export class DisputeResolver {
 
   @confirmResolve
   async reject(disputeID: string): Promise<void> {
-    console.log(`Rejecting dispute ${disputeID}...`)
+    log.info(`Rejecting dispute ${disputeID}...`)
     const tx = await this.disputeManager
       .connect(this.env.account)
       .rejectDispute(disputeID)
@@ -78,7 +79,7 @@ export class DisputeResolver {
 
   @confirmResolve
   async draw(disputeID: string): Promise<void> {
-    console.log(`Drawing dispute ${disputeID}...`)
+    log.info(`Drawing dispute ${disputeID}...`)
     const tx = await this.disputeManager
       .connect(this.env.account)
       .drawDispute(disputeID)

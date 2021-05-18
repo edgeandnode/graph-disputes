@@ -5,6 +5,7 @@ import { SingleBar } from 'cli-progress'
 import { Argv } from 'yargs'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
+import { log } from '../logging'
 import { populateEntry } from '../dispute'
 import { setupEnv } from '../env'
 import { getDispute } from '../model'
@@ -32,9 +33,9 @@ export const showCommand = {
     // Get dispute
     const dispute = await getDispute(env.networkSubgraph, disputeID)
     const disputeEntry = await populateEntry(dispute, env, true)
-    console.log(`Dispute #${disputeID}`)
-    console.log('-------')
-    console.log(treeify.asTree({ ...disputeEntry }, true, true))
+    log.info(`Dispute #${disputeID}`)
+    log.info('-------')
+    log.info(treeify.asTree({ ...disputeEntry }, true, true))
 
     // Try to find the presented Poi comparing with all the blocks
     // between previous epoch start block and block for the closed allocation
@@ -53,8 +54,8 @@ export const showCommand = {
         hideCursor: true,
       })
       bar.start(blockDiff, 0)
-      console.log(`PoIs for range (${startBlock} -> ${endBlock})`)
-      console.log('---------------------------------------------\n')
+      log.info(`PoIs for range (${startBlock} -> ${endBlock})`)
+      log.info('---------------------------------------------\n')
       await env.poiChecker.getPoiRangeStream(
         new SubgraphDeploymentID(dispute.subgraphDeployment.id),
         startBlock,
@@ -62,7 +63,7 @@ export const showCommand = {
         dispute.indexer.id,
         (poi: Poi) => {
           if (poi.proof === dispute.allocation.poi) {
-            console.log(
+            log.info(
               `Poi presented matches reference one for block ${poi.block.number}`,
             )
             process.exit()
@@ -71,7 +72,7 @@ export const showCommand = {
         },
       )
       bar.stop()
-      console.log('Not matching reference Poi found')
+      log.info('Not matching reference Poi found')
     }
   },
 }

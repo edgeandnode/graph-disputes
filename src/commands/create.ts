@@ -12,6 +12,7 @@ import {
   NetworkContracts,
 } from '@graphprotocol/common-ts'
 
+import { log } from '../logging'
 import { setupEnv } from '../env'
 import { approveIfRequired, waitTransaction } from '../network'
 import { askConfirm } from '../utils'
@@ -56,9 +57,9 @@ export const createIndexingDisputeCommand = {
 
     try {
       // Look for allocation and indexer address
-      console.log(`## Looking for on-chain allocation data`)
+      log.info(`## Looking for on-chain allocation data`)
       const indexerAddress = await validateAllocation(contracts, allocationID)
-      console.log('Indexer:', indexerAddress, '\n')
+      log.info('Indexer:', indexerAddress, '\n')
 
       // Confirm
       if (
@@ -70,25 +71,25 @@ export const createIndexingDisputeCommand = {
       }
 
       // Approve
-      console.log(`Approving ${deposit} GRT...`)
+      log.info(`Approving ${deposit} GRT...`)
       const approvalReceipt = await approveIfRequired(
         contracts.token,
         sender,
         contracts.disputeManager.address,
         depositWei,
       )
-      console.log(
+      log.info(
         approvalReceipt ? 'Deposit approved' : 'Skipped approval, not needed',
       )
 
       // Dispute
-      console.log(`Disputing ${allocationID}...`)
+      log.info(`Disputing ${allocationID}...`)
       const tx = await contracts.disputeManager
         .connect(sender)
         .createIndexingDispute(allocationID, depositWei)
       await waitTransaction(tx)
     } catch (err) {
-      console.log(err.message)
+      log.error(err.message)
     }
   },
 }
@@ -120,24 +121,24 @@ export const createQueryDisputeCommand = {
 
     try {
       // Decode attestation
-      console.log('## Decoding attestation')
+      log.info('## Decoding attestation')
       const attestation: Attestation = decodeAttestation(attestationBytes)
-      console.log(attestation, '\n')
+      log.info(attestation)
 
       // Recover signature
-      console.log('## Recovering signer')
+      log.info('## Recovering signer')
       const chainId = await provider.getNetwork().then(n => n.chainId)
       const allocationID = recoverAttestation(
         chainId,
         contracts.disputeManager.address,
         attestation,
       )
-      console.log('AllocationID:', allocationID, '\n')
+      log.info('AllocationID: ${allocationID}')
 
       // Look for allocation and indexer address
-      console.log(`## Looking for on-chain allocation data`)
+      log.info(`## Looking for on-chain allocation data`)
       const indexerAddress = await validateAllocation(contracts, allocationID)
-      console.log('Indexer:', indexerAddress, '\n')
+      log.info('Indexer: ${indexerAddress}')
 
       // Confirm
       if (
@@ -149,25 +150,25 @@ export const createQueryDisputeCommand = {
       }
 
       // Approve
-      console.log(`## Approving ${deposit} GRT...`)
+      log.info(`## Approving ${deposit} GRT...`)
       const approvalReceipt = await approveIfRequired(
         contracts.token,
         sender,
         contracts.disputeManager.address,
         depositWei,
       )
-      console.log(
+      log.info(
         approvalReceipt ? 'Deposit approved' : 'Skipped approval, not needed',
       )
 
       // Dispute
-      console.log(`## Disputing ${indexerAddress}...`)
+      log.info(`## Disputing ${indexerAddress}...`)
       const tx = await contracts.disputeManager
         .connect(sender)
         .createQueryDispute(attestationBytes, depositWei)
       await waitTransaction(tx)
     } catch (err) {
-      console.log(err.message)
+      log.error(err.message)
     }
   },
 }
