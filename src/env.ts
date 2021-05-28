@@ -8,12 +8,15 @@ import { NetworkContracts, connectContracts } from '@graphprotocol/common-ts'
 
 import { PoiChecker } from './poi'
 
+import { POIDisputeModels, definePOIDisputeModels, POIDispute } from './store'
+import { Sequelize } from 'sequelize'
+
 export interface Environment {
   provider: providers.Provider
   contracts: NetworkContracts
   networkSubgraph: Client
-  trustedSubgraph: Client
-  poiChecker: PoiChecker
+  trustedPOICheckers: PoiChecker[]
+  disputesModel: POIDisputeModels
 }
 
 export const setupEnv = async (
@@ -57,21 +60,65 @@ export const setupEnv = async (
     requestPolicy: 'network-only',
   })
 
-  // Trusted Proof Subgraph
-  const trustedSubgraph = createClient({
-    url: argv.trustedSubgraphEndpoint,
-    fetch,
-    requestPolicy: 'network-only',
+  console.log('trusteds', argv.trustedSubgraphEndpoints)
+
+  // Trusted Proof Clients
+  const trustedPOICheckers = argv.trustedSubgraphEndpoints.map(endpoint => {
+    let name = 'unknown'
+    let url = endpoint
+    if (!endpoint.startsWith('http')) {
+      const index = endpoint.indexOf(':')
+      name = endpoint.substr(0, index)
+      url = endpoint.substr(index + 1)
+    }
+    const client = createClient({
+      url: url,
+      fetch,
+      requestPolicy: 'network-only',
+    })
+    return new PoiChecker(provider, client, name)
   })
 
-  // POI Checker
-  const poiChecker = new PoiChecker(provider, trustedSubgraph)
+  // Trusted Proof Subgraph
+  // const trustedSubgraph = createClient({
+  //   url: argv.trustedSubgraphEndpoint,
+  //   fetch,
+  //   requestPolicy: 'network-only',
+  // })
+  //
+  // // POI Checker
+  // const poiChecker = new PoiChecker(provider, trustedSubgraph)
+
+  let disputesModel = undefined
+  if (argv.postgresHost) {
+    // Use port 5432 by default
+    const port = argv.postgresPort || 5432
+
+    // Connect to the database
+    const sequelize = new Sequelize({
+      dialect: 'postgres',
+      host: argv.postgresHost,
+      port,
+      username: argv.postgresUsername,
+      password: argv.postgresPassword,
+      database: argv.postgresDatabase,
+      pool: {
+        max: 10,
+        min: 0,
+      },
+    })
+
+    // Test the connection
+    await sequelize.authenticate()
+    disputesModel = definePOIDisputeModels(sequelize)
+    await sequelize.models.POIDispute.sync()
+  }
 
   return {
     provider,
     contracts,
     networkSubgraph,
-    trustedSubgraph,
-    poiChecker,
+    trustedPOICheckers,
+    disputesModel,
   }
 }

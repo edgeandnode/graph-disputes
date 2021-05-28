@@ -13,10 +13,12 @@ export interface EthereumBlock {
 export class PoiChecker {
   provider: providers.Provider
   subgraph: Client
+  name: string
 
-  constructor(provider: providers.Provider, subgraph: Client) {
+  constructor(provider: providers.Provider, subgraph: Client, name: string) {
     this.provider = provider
     this.subgraph = subgraph
+    this.name = name
   }
 
   getPoiRange = async (
@@ -73,6 +75,9 @@ export class PoiChecker {
         },
       )
       .toPromise()
+    if (result.error) {
+      throw result.error
+    }
     return result.data.proofOfIndexing
   }
 }
