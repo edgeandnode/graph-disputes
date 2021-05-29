@@ -1,6 +1,15 @@
+import inquirer from 'inquirer'
 import { Argv } from 'yargs'
 
-import { initConfig } from '../config'
+import { DEFAULT_CONFIG_PATH, initConfig, loadConfig } from '../config'
+import { askConfirm } from '../utils'
+import { log } from '../logging'
+
+const isValidURL = (value: string): boolean | string => {
+  const isValid =
+    value.indexOf('http://') === 0 || value.indexOf('https://') === 0
+  return isValid || 'Invalid URL'
+}
 
 export const setupCommand = {
   command: 'setup',
@@ -8,11 +17,58 @@ export const setupCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
+    // Check if the config file exists
+    const config = loadConfig()
+    if (config) {
+      log.info(`Config file found (${DEFAULT_CONFIG_PATH})...`)
+      log.info(JSON.stringify(config, null, 2))
+      if (!(await askConfirm('Do you want to override?'))) {
+        return
+      }
+    }
+
+    // Ask for config parameter
+    const res = await inquirer.prompt([
+      {
+        name: 'ethereum',
+        message: 'Ethereum Node RPC-URL',
+        validate: isValidURL,
+      },
+      {
+        type: 'list',
+        name: 'ethereum-network',
+        message: 'Ethereum Network',
+        choices: [
+          {
+            key: 'mainnet',
+            value: 'mainnet',
+          },
+          {
+            key: 'rinkeby',
+            value: 'rinkeby',
+          },
+        ],
+      },
+      {
+        name: 'network-subgraph-endpoint',
+        message: 'Network Subgraph Endpoint',
+        validate: isValidURL,
+      },
+      {
+        name: 'trusted-subgraph-network',
+        message: 'Trusted Subgraph Endpoint',
+        validate: isValidURL,
+      },
+    ])
+
+    // Save config file
+    log.info(`Saving config file (${DEFAULT_CONFIG_PATH})...`)
     initConfig({
-      ethereum: 'coso1',
-      ethereumNetwork: 'coso2',
-      networkSubgraphEndpoint: 'coso3',
-      trustedSubgraphEndpoint: 'coso4',
+      ethereum: res.ethereum,
+      ethereumNetwork: res['ethereum-network'],
+      networkSubgraphEndpoint: res['network-subgraph-endpoint'],
+      trustedSubgraphEndpoint: res['trusted-subgraph-network'],
     })
+    log.info('Done!')
   },
 }
