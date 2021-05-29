@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import treeify from 'treeify'
 import { Argv } from 'yargs'
-import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
 import { log } from '../logging'
-import { populateEntry } from '../dispute'
 import { setupEnv } from '../env'
 import { getAllocation } from '../model'
-import { Poi } from '../poi'
 
 export const inspectCommand = {
   command: 'inspect <allocationID>',
@@ -29,6 +25,6 @@ export const inspectCommand = {
 
     // Get dispute
     const allocation = await getAllocation(env.networkSubgraph, allocationID)
-    log.info(allocation)
+    log.info(JSON.stringify(allocation, null, 2))
   },
 }
