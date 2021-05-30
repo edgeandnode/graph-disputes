@@ -4,6 +4,7 @@ import fs from 'fs'
 import findUp from 'find-up'
 
 import { DEFAULT_CONFIG_NAME } from './config'
+import { setupEnv } from './env'
 
 import { setupCommand } from './commands/setup'
 import { createCommand } from './commands/create'
@@ -11,6 +12,10 @@ import { resolveCommand } from './commands/resolve'
 import { listCommand } from './commands/list'
 import { showCommand } from './commands/show'
 import { inspectCommand } from './commands/inspect'
+
+yargs.middleware(async argv => {
+  return { env: await setupEnv(argv) }
+})
 
 yargs
   .scriptName('graph-disputes')

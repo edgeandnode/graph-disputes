@@ -49,9 +49,7 @@ export class DisputeResolver {
   }
 
   async showResolution(disputeID: string): Promise<void> {
-    const { networkSubgraph } = this.env
-
-    const dispute = await getDispute(networkSubgraph, disputeID)
+    const dispute = await getDispute(this.env.networkSubgraph, disputeID)
     const disputeEntry = await populateEntry(dispute, this.env, true)
     log.info(treeify.asTree(disputeEntry, true, true))
 

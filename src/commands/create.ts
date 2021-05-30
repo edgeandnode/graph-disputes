@@ -13,7 +13,6 @@ import {
 } from '@graphprotocol/common-ts'
 
 import { log } from '../logging'
-import { setupEnv } from '../env'
 import { approveIfRequired, waitTransaction } from '../network'
 import { askConfirm } from '../utils'
 
@@ -47,9 +46,8 @@ export const createIndexingDisputeCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const { provider, contracts } = await setupEnv(argv)
-
     // Parse arguments
+    const { provider, contracts } = argv.env
     const allocationID = argv.allocationID
     const deposit = argv.deposit
     const depositWei = parseGRT(deposit)
@@ -111,9 +109,8 @@ export const createQueryDisputeCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const { provider, contracts } = await setupEnv(argv)
-
     // Parse arguments
+    const { provider, contracts } = argv.env
     const attestationBytes = argv.attestation
     const deposit = argv.deposit
     const depositWei = parseGRT(deposit)

@@ -1,5 +1,4 @@
 import inquirer from 'inquirer'
-import { Argv } from 'yargs'
 
 import { DEFAULT_CONFIG_PATH, initConfig, loadConfig } from '../config'
 import { askConfirm } from '../utils'
@@ -14,9 +13,7 @@ const isValidURL = (value: string): boolean | string => {
 export const setupCommand = {
   command: 'setup',
   describe: 'Setup config',
-  handler: async (
-    argv: { [key: string]: any } & Argv['argv'],
-  ): Promise<void> => {
+  handler: async (): Promise<void> => {
     // Check if the config file exists
     const config = loadConfig()
     if (config) {

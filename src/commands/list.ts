@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+import ora from 'ora'
 import treeify from 'treeify'
 import chalk from 'chalk'
 import { Argv } from 'yargs'
 
 import { log } from '../logging'
 import { populateEntry } from '../dispute'
-import { setupEnv } from '../env'
 import { getDisputes } from '../model'
 
 export const listCommand = {
@@ -15,18 +14,22 @@ export const listCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const env = await setupEnv(argv)
+    const env = argv.env
+    const { networkSubgraph } = env
 
     // Get disputes to list
+    const spinner = ora('Loading disputes...\n').start()
     const data = {}
-    const disputes = await getDisputes(env.networkSubgraph)
-    log.info(`Disputes found: ${disputes.length}`)
-
+    const disputes = await getDisputes(networkSubgraph)
+    log.info(`Found: ${disputes.length}\n`)
     // Process each dispute and populate additional information
-    for (const dispute of disputes) {
-      const disputeEntry = await populateEntry(dispute, env, false)
-      data[chalk.whiteBright.underline(dispute.id)] = disputeEntry
-    }
+    await Promise.all(
+      disputes.map(async dispute => {
+        const disputeEntry = await populateEntry(dispute, env, false)
+        data[chalk.whiteBright.underline(dispute.id)] = disputeEntry
+      }),
+    )
+    spinner.stop()
 
     // Display disputes
     log.info('Disputes')

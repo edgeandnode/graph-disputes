@@ -3,7 +3,6 @@
 import { Argv } from 'yargs'
 
 import { log } from '../logging'
-import { setupEnv } from '../env'
 import { getAllocation } from '../model'
 
 export const inspectCommand = {
@@ -18,13 +17,12 @@ export const inspectCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const env = await setupEnv(argv)
-
     // Parse arguments
+    const { networkSubgraph } = argv.env
     const allocationID = argv.allocationID
 
     // Get dispute
-    const allocation = await getAllocation(env.networkSubgraph, allocationID)
+    const allocation = await getAllocation(networkSubgraph, allocationID)
     log.info(JSON.stringify(allocation, null, 2))
   },
 }

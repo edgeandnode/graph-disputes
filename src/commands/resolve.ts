@@ -2,7 +2,6 @@
 
 import yargs, { Argv } from 'yargs'
 
-import { setupEnv } from '../env'
 import { DisputeResolver } from '../resolver'
 
 export const acceptDisputeCommand = {
@@ -11,8 +10,7 @@ export const acceptDisputeCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const env = await setupEnv(argv)
-    const resolver = new DisputeResolver(env)
+    const resolver = new DisputeResolver(argv.env)
     await resolver.accept(argv.disputeID)
   },
 }
@@ -23,8 +21,7 @@ export const drawDisputeCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const env = await setupEnv(argv)
-    const resolver = new DisputeResolver(env)
+    const resolver = new DisputeResolver(argv.env)
     await resolver.draw(argv.disputeID)
   },
 }
@@ -35,8 +32,7 @@ export const rejectDisputeCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const env = await setupEnv(argv)
-    const resolver = new DisputeResolver(env)
+    const resolver = new DisputeResolver(argv.env)
     await resolver.reject(argv.disputeID)
 
     // TODO: initiate a gnosis transaction for signing
