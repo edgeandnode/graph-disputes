@@ -44,9 +44,10 @@ graph-disputes dispute create indexing <allocationID> <deposit>
 graph-disputes dispute create query <attestation> <deposit>
 
 # Arbitrator
-graph-disputes dispute reject <disputeID>
-graph-disputes dispute accept <disputeID>
-graph-disputes dispute draw <disputeID>
+graph-disputes dispute resolve reject <disputeID>
+graph-disputes dispute resolve accept <disputeID>
+graph-disputes dispute resolve draw <disputeID>
+graph-disputes dispute resolve verify <payload>
 ```
 
 
