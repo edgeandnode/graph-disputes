@@ -11,7 +11,7 @@ export const acceptDisputeCommand = {
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     const resolver = new DisputeResolver(argv.env)
-    await resolver.accept(argv.disputeID)
+    await resolver.accept(argv.disputeID, argv.execute)
   },
 }
 
@@ -22,7 +22,7 @@ export const drawDisputeCommand = {
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     const resolver = new DisputeResolver(argv.env)
-    await resolver.draw(argv.disputeID)
+    await resolver.draw(argv.disputeID, argv.execute)
   },
 }
 
@@ -33,10 +33,7 @@ export const rejectDisputeCommand = {
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     const resolver = new DisputeResolver(argv.env)
-    await resolver.reject(argv.disputeID)
-
-    // TODO: initiate a gnosis transaction for signing
-    // TODO: print raw data
+    await resolver.reject(argv.disputeID, argv.execute)
   },
 }
 
@@ -48,8 +45,16 @@ export const resolveCommand = {
       .option('account', {
         description: 'Ethereum account',
         type: 'string',
-        required: true,
+        demandOption: false,
+        requiresArg: true,
         group: 'Ethereum',
+      })
+      .option('execute', {
+        description: 'Execute the transaction',
+        type: 'boolean',
+        demandOption: false,
+        requiresArg: false,
+        default: false,
       })
       .positional('disputeID', { type: 'string' })
       .command(acceptDisputeCommand)

@@ -2,10 +2,12 @@
 
 import { Client } from '@urql/core'
 import gql from 'graphql-tag'
+
 export interface Epoch {
   id: number
   startBlock: number
 }
+
 export interface Allocation {
   id: string
   createdAtEpoch: number
@@ -21,12 +23,15 @@ export interface Allocation {
 export interface SubgraphDeployment {
   id: string
 }
+
 export interface Fisherman {
   id: string
 }
+
 export interface Indexer {
   id: string
 }
+
 export interface Dispute {
   id: string
   type: string

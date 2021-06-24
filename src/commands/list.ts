@@ -22,6 +22,7 @@ export const listCommand = {
     const data = {}
     const disputes = await getDisputes(networkSubgraph)
     log.info(`Found: ${disputes.length}\n`)
+
     // Process each dispute and populate additional information
     await Promise.all(
       disputes.map(async dispute => {

@@ -1,4 +1,6 @@
+import { providers } from 'ethers'
 import treeify from 'treeify'
+import ora from 'ora'
 import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManager'
 
 import { log } from './logging'
@@ -7,6 +9,18 @@ import { Environment } from './env'
 import { getDispute } from './model'
 import { waitTransaction } from './network'
 import { askConfirm } from './utils'
+
+enum DisputeResolution {
+  Accept = 1,
+  Reject,
+  Draw,
+}
+
+const disputeResolutionCalls: Map<DisputeResolution, string> = new Map([
+  [DisputeResolution.Accept, 'acceptDispute(bytes32)'],
+  [DisputeResolution.Reject, 'rejectDispute(bytes32)'],
+  [DisputeResolution.Draw, 'drawDispute(bytes32)'],
+])
 
 const confirmResolve = (
   target: any,
@@ -49,38 +63,54 @@ export class DisputeResolver {
   }
 
   async showResolution(disputeID: string): Promise<void> {
+    const spinner = ora('Loading dispute...\n').start()
     const dispute = await getDispute(this.env.networkSubgraph, disputeID)
     const disputeEntry = await populateEntry(dispute, this.env, true)
+    spinner.stop()
+
     log.info(treeify.asTree(disputeEntry, true, true))
 
     // TODO: show how much the indexer will be slashed
-    // TODO: show the bond the fisherman will get
+    // TODO: show the bond the submitter will get
+  }
+
+  async commit(
+    disputeID: string,
+    resolve: DisputeResolution,
+    execute: boolean,
+  ): Promise<providers.TransactionReceipt | void> {
+    const functionName = disputeResolutionCalls.get(resolve)
+
+    // Execute transaction
+    if (execute) {
+      const tx = await this.disputeManager
+        .connect(this.env.account)
+        .functions[functionName](disputeID)
+      return waitTransaction(tx)
+    }
+
+    // Show transaction payload
+    const tx = await this.disputeManager.populateTransaction[functionName](
+      disputeID,
+    )
+    log.info(JSON.stringify(tx, null, 2))
   }
 
   @confirmResolve
-  async accept(disputeID: string): Promise<void> {
+  async accept(disputeID: string, execute = false): Promise<void> {
     log.info(`Accepting dispute ${disputeID}...`)
-    const tx = await this.disputeManager
-      .connect(this.env.account)
-      .acceptDispute(disputeID)
-    await waitTransaction(tx)
+    await this.commit(disputeID, DisputeResolution.Accept, execute)
   }
 
   @confirmResolve
-  async reject(disputeID: string): Promise<void> {
+  async reject(disputeID: string, execute = false): Promise<void> {
     log.info(`Rejecting dispute ${disputeID}...`)
-    const tx = await this.disputeManager
-      .connect(this.env.account)
-      .rejectDispute(disputeID)
-    await waitTransaction(tx)
+    await this.commit(disputeID, DisputeResolution.Reject, execute)
   }
 
   @confirmResolve
-  async draw(disputeID: string): Promise<void> {
+  async draw(disputeID: string, execute = false): Promise<void> {
     log.info(`Drawing dispute ${disputeID}...`)
-    const tx = await this.disputeManager
-      .connect(this.env.account)
-      .drawDispute(disputeID)
-    await waitTransaction(tx)
+    await this.commit(disputeID, DisputeResolution.Draw, execute)
   }
 }
