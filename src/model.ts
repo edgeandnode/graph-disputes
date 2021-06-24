@@ -3,19 +3,121 @@
 import { Client } from '@urql/core'
 import gql from 'graphql-tag'
 
-export const getDisputes = async (networkSubgraph: Client): Promise<any> => {
+export interface Epoch {
+  id: number
+  startBlock: number
+}
+
+export interface Allocation {
+  id: string
+  createdAtEpoch: number
+  createdAtBlockHash: number
+  closedAtEpoch: number
+  closedAtBlockHash: number
+  closedAtBlockNumber: number
+  poi: string
+  indexer?: Indexer
+  subgraphDeployment?: SubgraphDeployment
+}
+
+export interface SubgraphDeployment {
+  id: string
+}
+
+export interface Fisherman {
+  id: string
+}
+
+export interface Indexer {
+  id: string
+}
+
+export interface Dispute {
+  id: string
+  type: string
+  status: string
+  createdAt: number
+  allocation: Allocation
+  subgraphDeployment: SubgraphDeployment
+  indexer: Indexer
+  fisherman: Fisherman
+}
+
+export const getEpoch = async (
+  networkSubgraph: Client,
+  epochID: number,
+): Promise<Epoch> => {
+  const result = await networkSubgraph
+    .query(
+      gql`
+        query($epochID: Int!) {
+          epoch(id: $epochID) {
+            id
+            startBlock
+          }
+        }
+      `,
+      { epochID },
+    )
+    .toPromise()
+  return result.data.epoch
+}
+
+export const getAllocation = async (
+  networkSubgraph: Client,
+  allocationID: string,
+): Promise<Allocation> => {
+  const result = await networkSubgraph
+    .query(
+      gql`
+        query($allocationID: String!) {
+          allocation(id: $allocationID) {
+            id
+            createdAtEpoch
+            createdAtBlockHash
+            closedAtEpoch
+            closedAtBlockHash
+            closedAtBlockNumber
+            poi
+            subgraphDeployment {
+              id
+            }
+            indexer {
+              id
+            }
+          }
+        }
+      `,
+      { allocationID },
+    )
+    .toPromise()
+  return result.data.allocation
+}
+
+export const getDisputes = async (
+  networkSubgraph: Client,
+): Promise<Dispute[]> => {
   const result = await networkSubgraph
     .query(
       gql`
         {
-          disputes(
-            where: { status: "Accepted" }
-            orderBy: "createdAt"
-            orderDirection: "asc"
-          ) {
+          disputes(orderBy: "createdAt", orderDirection: "asc") {
             id
             type
             status
+            createdAt
+            allocation {
+              id
+              createdAtEpoch
+              createdAtBlockHash
+              closedAtEpoch
+              closedAtBlockHash
+              closedAtBlockNumber
+              poi
+            }
+            subgraphDeployment {
+              id
+            }
             indexer {
               id
             }
@@ -33,7 +135,7 @@ export const getDisputes = async (networkSubgraph: Client): Promise<any> => {
 export const getDispute = async (
   networkSubgraph: Client,
   disputeID: string,
-): Promise<any> => {
+): Promise<Dispute> => {
   const result = await networkSubgraph
     .query(
       gql`
@@ -42,6 +144,19 @@ export const getDispute = async (
             id
             type
             status
+            createdAt
+            allocation {
+              id
+              createdAtEpoch
+              createdAtBlockHash
+              closedAtEpoch
+              closedAtBlockHash
+              closedAtBlockNumber
+              poi
+            }
+            subgraphDeployment {
+              id
+            }
             indexer {
               id
             }
