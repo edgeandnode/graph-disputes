@@ -36,18 +36,18 @@ Run `graph-disputes` with no parameters to see a list of commands.
 graph-dispute setup
 
 # General
-graph-disputes dispute list
-graph-disputes dispute show <disputeID>
+graph-disputes list [--status <accepted|rejected|draw|undecided|all>]
+graph-disputes show <disputeID>
 
 # Submitter
-graph-disputes dispute create indexing <allocationID> <deposit>
-graph-disputes dispute create query <attestation> <deposit>
+graph-disputes create indexing <allocationID> <deposit>
+graph-disputes create query <attestation> <deposit>
 
 # Arbitrator
-graph-disputes dispute resolve reject <disputeID>
-graph-disputes dispute resolve accept <disputeID>
-graph-disputes dispute resolve draw <disputeID>
-graph-disputes dispute resolve verify <payload>
+graph-disputes resolve reject <disputeID>
+graph-disputes resolve accept <disputeID>
+graph-disputes resolve draw <disputeID>
+graph-disputes resolve verify <payload>
 ```
 
 
@@ -123,7 +123,7 @@ The Arbitration process is managed by a Multisig that can be changed anytime by 
 
 ### List Disputes
 
-The `list` command allows shows you the active disputes:
+The `list` command shows you the active (undecided) disputes:
 
 ```bash
 graph-dispute list

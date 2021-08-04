@@ -92,7 +92,6 @@ export class PoiChecker {
         },
       )
       .toPromise()
-
     if (!result.data) {
       return null
     }

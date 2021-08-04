@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: graph-disputes-server
+spec:
+  serviceName: graph-disputes-server
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graph-disputes-server
+  template:
+    metadata:
+      labels:
+        app: graph-disputes-server
+    spec:
+      imagePullSecrets:
+        - name: docker-registry
+      containers:
+        - name: app
+          image: ghcr.io/graph-disputes-server
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: graph-disputes-server-db-credentials
+                  key: host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: graph-disputes-server-db-credentials
+                  key: port
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: graph-disputes-server-db-credentials
+                  key: name
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: graph-disputes-server-db-credentials
+                  key: user
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: graph-disputes-server-db-credentials
+                  key: pass
+          volumeMounts:
+            - name: data-key
+              mountPath: /app
+      volumes:
+        - name: data-key
+          secret:
+            secretName: graph-disputes-server-data-key
+            items:
+              - key: key.json
+                path: service-key.json

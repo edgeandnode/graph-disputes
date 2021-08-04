@@ -1,22 +1,15 @@
-# Ignore zeppelin contracts
 node_modules/
-
-# Ignore build stuff
 cache/
 build/
 dist/
-
-# Coverage tests
 coverage/
-
-# Hardhat cache
-cached/
-
-# Ignore solc bin output
-bin/
-
-# Others
 .env
 .DS_Store
 .vscode
+
+__pycache__/
+
+#data files
+*.csv
+service-key.json
 
