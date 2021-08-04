@@ -19,4 +19,8 @@ bin/
 .env
 .DS_Store
 .vscode
+__pycache__/
 
+#data files
+*.csv
+service-key.json
