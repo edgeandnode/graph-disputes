@@ -2,11 +2,17 @@ from transitions import Machine
 from ..models import db
 from ..models.disputes import Dispute
 from ..models.indexer import Indexer
+from ..models.divergent_blocks import DivergentBlocks
 from ..models.indexer_uploads import IndexerUploads
 from ..storage.gcloud import upload_file
+from analysis.calculate_divergent_block import calculate_divergent_blocks
+from sqlalchemy import and_
 
 
 async def create_resolver(dispute_id, indexer_id):
+    """
+    Async helper function allows for construction to depend on a database query.
+    """
     resolver = DisputeResolver(dispute_id, indexer_id)
     await resolver._init()
     return resolver
@@ -17,8 +23,11 @@ import ipdb
 
 class DisputeResolver(object):
     """
-    Dispute resolver is a fsm that gets sent events which will trigger functions
+    Dispute resolver is a finite state machine that gets sent events which will trigger functions
     for resolving a dispute.
+
+    As it progresses through a dispute it will intermittently alter relevant state
+    in the database.
     """
 
     # Define some states. Most of the time, narcoleptic superheroes are just like
@@ -38,12 +47,14 @@ class DisputeResolver(object):
 
     async def _init(self):
         state = await self.get_stage()
-        # Initialize the state machine
-        if not state:
+        if not state or state == "dispute_settled":
+            # The dispute is inactive. Can't do anything.
             return None
         self.machine = Machine(model=self, states=DisputeResolver.states, initial=state)
 
-        # An indexer has supplied us with their poi. We need all of them
+        # An indexer has supplied us with their poi. We wait for all of the indexers
+        # Or until we decide it's time to move on
+
         self.machine.add_transition(
             trigger="added_poi",
             source="waiting_for_poi",
@@ -64,8 +75,8 @@ class DisputeResolver(object):
             after="indexer_add_entities",
         )
 
-        # Superheroes are always on call. ALWAYS. But they're not always
-        # dressed in work-appropriate clothing.
+        # Notify an arbitrator onnce all of the jury dutied indexers
+        # have supplied their entities
         self.machine.add_transition(
             "received_all_entities",
             "generated_divergent_blocks",
@@ -73,6 +84,7 @@ class DisputeResolver(object):
             after="notify_arbitrator",
         )
 
+        # Mark the dispute as settled.
         self.machine.add_transition(
             "done", "arbitrating", "dispute_settled", after="dispute_settled"
         )
@@ -84,6 +96,18 @@ class DisputeResolver(object):
             .gino.scalar()
         )
         return current_stage
+
+    async def indexer_in_dispute(self):
+        """
+        Check that this indexer should even be contributing to the dispute.
+        """
+        is_implicated = await Dispute.query.where(
+            and_(
+                Dispute.dispute_id == self.dispute_id,
+                Dispute.indexer_ids.contains(self.indexer_id),
+            )
+        ).gino.all()
+        return len(is_implicated) > 0
 
     async def indexer_add_poi(self, content, file_name):
         """
@@ -102,6 +126,13 @@ class DisputeResolver(object):
 
 
         """
+
+        # Check that this indexer is implicated in the dispute
+        is_implicated = await self.indexer_in_dispute()
+
+        if not is_implicated:
+            raise Exception("You aren't able to contribute to this dispute")
+
         # Push the file contents to object storage.
         status, object_path = await upload_file(
             file_data=content,
@@ -119,12 +150,58 @@ class DisputeResolver(object):
         )
         return object_path
 
-    async def generate_divergent_blocks():
-        pass
+    async def generate_divergent_blocks(self):
+        """
+        Create divergent block entries and update the dispute state
+        """
+        divergent_blocks = calculate_divergent_blocks(self.dispute_id)
+
+        async with db.transaction(isolation="serializable") as tx_root:
+
+            conn = tx_root.connection
+            tx = await conn.transaction()
+            try:
+                create_blocks = await DivergentBlocks.bulk_upsert(
+                    divergent_blocks=divergent_blocks, dispute_id=self.dispute_id
+                )
+
+                dispute = await Dispute.update(
+                    stage="generated_divergent_blocks"
+                ).where(Dispute.dispute_id == self.dispute_id)
+
+                await tx.commit()
+            except:
+                await tx.rollback()
+
+        return dispute.to_dict()
 
     async def indexer_add_entities(self):
         """Keep a tally of the progress of each indexer's subgraph entities on the dispute"""
+        is_implicated = await self.indexer_in_dispute()
+
+        if not is_implicated:
+            raise Exception("You aren't able to contribute to this dispute")
+
+        state = await self.get_stage()
+        if not state or state != "generated_divergent_blocks":
+            # The dispute is inactive. Can't do anything.
+            raise Exception("Dispute is not currently accepting entities")
+
         pass
+
+    async def generate_matching_events(self):
+        """
+        Gathers divergent blocks and uses them to generate a set of matching events which are stashed in GCS.
+        """
+        divergent_blocks = (
+            await DivergentBlocks.select("divergent_blocks")
+            .where(DivergentBlocks.dispute_id == self.dispute_id)
+            .gino.all()
+        )
+        all_blocks = []
+        for divergent_set in divergent_blocks:
+            all_blocks.extend(divergent_set)
+        unique_blocks = list(set(all_blocks))
 
     async def notify_arbitrator(self):
         """Send an emai;/slack or some notification to E&N"""

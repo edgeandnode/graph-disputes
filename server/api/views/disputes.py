@@ -38,7 +38,6 @@ async def add_dispute(dispute: DisputeModel):
     async with db.transaction(isolation="serializable") as tx_root:
         conn = tx_root.connection
         tx = await conn.transaction()
-        ipdb.set_trace()
         try:
             created_dispute = await Dispute.create(
                 dispute_id=dispute.allocation_id,
