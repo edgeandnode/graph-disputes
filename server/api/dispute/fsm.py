@@ -1,4 +1,6 @@
 import logging
+import pandas as pd
+from typing import Optional
 from sqlalchemy import and_
 from transitions import Machine
 
@@ -158,7 +160,7 @@ class DisputeResolver(object):
         )
         return object_path
 
-    async def generate_divergent_blocks(self):
+    async def generate_divergent_blocks(self) -> Optional[pd.DataFrame]:
         """
         Create divergent block entries and update the dispute state
         """
@@ -180,8 +182,9 @@ class DisputeResolver(object):
                 await tx.commit()
             except:
                 await tx.rollback()
+                return None
 
-        return dispute.to_dict()
+        return divergent_blocks
 
     async def indexer_add_entities(self, content, file_name):
         """Keep a tally of the progress of each indexer's subgraph entities on the dispute"""
@@ -235,7 +238,7 @@ class DisputeResolver(object):
 
         manifest = get_subgraph_manifest(subgraph_id)
         data_sources = get_subgraph_data_sources(manifest)
-        matching_events =  get_matching_events(data_sources, unique_blocks)
+        matching_events = get_matching_events(data_sources, unique_blocks)
         # upload_result = await stream_dataframe_to_gcs(matching_events, self.dispute_id)
         try:
             matching_events.to_csv(

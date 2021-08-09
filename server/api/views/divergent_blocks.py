@@ -1,12 +1,18 @@
+import logging
 from typing import List
 from fastapi import APIRouter
 from pydantic import BaseModel
+from fastapi import HTTPException
 from sqlalchemy import and_, or_
 from starlette.requests import Request
 
 
 from ..models.divergent_blocks import DivergentBlocks
-from ..dispute.fsm import create_resolver
+from ..dispute.fsm import DisputeResolver, create_resolver
+
+
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter()
 
@@ -95,13 +101,19 @@ async def submit_divergent_blocks(dblocks: DivergentBlockModel):
 @router.post("/divergent_blocks/{dispute_id}")
 async def generate_divergent_blocks(dispute_id: str, request: Request):
     """
-    NOT PUBLIC
-    Just used for testing.
+    Trigger the creation of divergent blocks for a dispute
 
     """
-    dsp = create_resolver(
+    # Create the resolver with supplied dispute
+    dsp: DisputeResolver = await create_resolver(
         dispute_id,
     )
+    generated = await dsp.generate_divergent_blocks()
+
+    if not generated:
+        logger.info("Could not generate divergent blocks")
+        raise HTTPException(status_code=500, detail="Could not generate")
+    return generated.to_json()
 
 
 def init_app(app):

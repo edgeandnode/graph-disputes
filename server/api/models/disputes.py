@@ -3,8 +3,17 @@ import datetime
 from . import db
 from .indexer_uploads import IndexerUploads
 
+import enum
 from sqlalchemy import *
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+
+
+class DisputeStage(enum.Enum):
+    waiting_for_poi = 1
+    acquired_poi = 2
+    generated_divergent_blocks = 3
+    arbitrating = 4
+    dispute_settled = 5
 
 
 class Dispute(db.Model):
@@ -19,6 +28,11 @@ class Dispute(db.Model):
     ##All indexers implicated in the dispute
     indexer_ids = db.Column("indexer_ids", ARRAY(String))
     stage = db.Column(db.String())
+    dispute_stage = Column(
+        Enum(DisputeStage),
+        nullable=True,
+        default=DisputeStage.waiting_for_poi,
+    )
     subgraph_id = db.Column(db.String())
     ##Store things like the divergent ids, or any extra data
     metadata = db.Column("metadata", JSONB)
