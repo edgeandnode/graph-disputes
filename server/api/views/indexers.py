@@ -12,8 +12,10 @@ router = APIRouter()
 
 class IndexerMetadata(BaseModel):
     ethereum_client: Optional[str] = None
+    ethereum_cleint_version: Optional[str] = None
     hardware_configuration: Optional[str] = None
     graph_node_version: Optional[str] = None
+    graph_node_configuration: Optional[dict] = None
 
 
 class IndexerModel(BaseModel):
@@ -29,6 +31,7 @@ async def create_indexer(indexer: IndexerModel):
         name=indexer.name,
         indexer_metadata=jsonable_encoder(indexer.indexer_metadata),
     )
+    # indexer = await Indexer.upsert_indexer(indexer)
     return indexer.to_dict()
 
 

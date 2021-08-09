@@ -1,12 +1,21 @@
+import logging
+from sqlalchemy import and_
 from transitions import Machine
+
 from ..models import db
 from ..models.disputes import Dispute
 from ..models.indexer import Indexer
 from ..models.divergent_blocks import DivergentBlocks
 from ..models.indexer_uploads import IndexerUploads
-from ..storage.gcloud import upload_file
+from ..storage.gcloud import upload_file, stream_dataframe_to_gcs, POI_BUCKET_NAME
+from .web3 import (
+    get_matching_events,
+    get_subgraph_data_sources,
+    get_subgraph_manifest,
+)
 from analysis.calculate_divergent_block import calculate_divergent_blocks
-from sqlalchemy import and_
+
+logger = logging.getLogger(__name__)
 
 
 async def create_resolver(dispute_id, indexer_id):
@@ -16,9 +25,6 @@ async def create_resolver(dispute_id, indexer_id):
     resolver = DisputeResolver(dispute_id, indexer_id)
     await resolver._init()
     return resolver
-
-
-import ipdb
 
 
 class DisputeResolver(object):
@@ -34,6 +40,7 @@ class DisputeResolver(object):
     # everyone else. Except for...
     states = [
         "waiting_for_poi",
+        "acquired_poi",
         "generated_divergent_blocks",
         "arbitrating",
         "dispute_settled",
@@ -111,13 +118,14 @@ class DisputeResolver(object):
 
     async def indexer_add_poi(self, content, file_name):
         """
-        Keep a tally of the progress of each indexer's POI on the dispute
+        Keep a tally of the progress of each indexer's POI on the dispute.
 
-        Does two things, Given the file data from the poi:
-            0. Check that this upload is even necessary
-            1. Upload the data to a persistent data storage
-                -GCS
-            2. Note the upload path in postgres for the given indexer
+        Does three things given the file data from the poi:
+
+        0. Check that this upload is even necessary
+        1. Upload the data to a persistent data storage
+         -GCS
+        2. Note the upload path in postgres for the given indexer
 
         Potential Errors:
             - No currently active dispute for indexer.
@@ -175,7 +183,7 @@ class DisputeResolver(object):
 
         return dispute.to_dict()
 
-    async def indexer_add_entities(self):
+    async def indexer_add_entities(self, content, file_name):
         """Keep a tally of the progress of each indexer's subgraph entities on the dispute"""
         is_implicated = await self.indexer_in_dispute()
 
@@ -187,11 +195,27 @@ class DisputeResolver(object):
             # The dispute is inactive. Can't do anything.
             raise Exception("Dispute is not currently accepting entities")
 
-        pass
+        # Push the file contents to object storage.
+        status, object_path = await upload_file(
+            file_data=content,
+            object_name=file_name,
+            indexer_node=self.indexer_id,
+            dispute_hash=self.dispute_id,
+        )
+
+        # Push the filepath to database
+        push_to_db = await IndexerUploads.create(
+            dispute_id=self.dispute_id,
+            indexer_id=self.indexer_id,
+            data_path=object_path,
+            data_kind="entities",
+        )
+        return object_path
 
     async def generate_matching_events(self):
         """
-        Gathers divergent blocks and uses them to generate a set of matching events which are stashed in GCS.
+        Gathers divergent blocks and uses them to generate a set of
+        matching events against an ethereum node which are stashed in GCS.
         """
         divergent_blocks = (
             await DivergentBlocks.select("divergent_blocks")
@@ -203,8 +227,29 @@ class DisputeResolver(object):
             all_blocks.extend(divergent_set)
         unique_blocks = list(set(all_blocks))
 
+        subgraph_id = (
+            await Dispute.select("subgraph_id")
+            .where(Dispute.dispute_id == self.dispute_id)
+            .gino.scalar()
+        )
+
+        manifest = get_subgraph_manifest(subgraph_id)
+        data_sources = get_subgraph_data_sources(manifest)
+        matching_events =  get_matching_events(data_sources, unique_blocks)
+        # upload_result = await stream_dataframe_to_gcs(matching_events, self.dispute_id)
+        try:
+            matching_events.to_csv(
+                "gs://{}/{}/matching_events.csv".format(
+                    POI_BUCKET_NAME, self.dispute_id
+                )
+            )
+            return True
+        except:
+            logger.error("Can't upload matching events to GCS")
+            raise Exception("Upload exception")
+
     async def notify_arbitrator(self):
-        """Send an emai;/slack or some notification to E&N"""
+        """Send an email/slack or some notification to E&N"""
         pass
 
     async def dispute_settled(self):

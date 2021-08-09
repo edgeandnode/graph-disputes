@@ -1,7 +1,6 @@
 from typing import List
 from fastapi import APIRouter
 from pydantic import BaseModel
-from sqlalchemy.dialects.postgresql import insert
 
 from ..models import db
 from ..models.disputes import Dispute

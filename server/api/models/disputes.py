@@ -19,6 +19,7 @@ class Dispute(db.Model):
     ##All indexers implicated in the dispute
     indexer_ids = db.Column("indexer_ids", ARRAY(String))
     stage = db.Column(db.String())
+    subgraph_id = db.Column(db.String())
     ##Store things like the divergent ids, or any extra data
     metadata = db.Column("metadata", JSONB)
 

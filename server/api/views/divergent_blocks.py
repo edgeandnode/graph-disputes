@@ -1,14 +1,14 @@
 from typing import List
 from fastapi import APIRouter
 from pydantic import BaseModel
-from starlette.requests import Request
 from sqlalchemy import and_, or_
+from starlette.requests import Request
 
 from sqlalchemy.dialects.postgresql import insert
 
 from ..models import db
 from ..models.divergent_blocks import DivergentBlocks
-
+from ..dispute.fsm import create_resolver
 
 router = APIRouter()
 
@@ -92,6 +92,16 @@ async def submit_divergent_blocks(dblocks: DivergentBlockModel):
     )
 
     return created_blocks.to_dict()
+
+
+@router.post("/divergent_blocks/{dispute_id}")
+async def generate_divergent_blocks(dispute_id: str, request: Request):
+    """
+    NOT PUBLIC
+    Just used for testing.
+
+    """
+    dsp =  create_resolver(dispute_id,)
 
 
 def init_app(app):

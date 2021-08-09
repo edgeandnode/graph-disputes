@@ -2,13 +2,11 @@ import os
 import logging
 import asyncio
 import aiohttp
-
+import pandas as pd
 
 from pathlib import Path
-from smart_open import open
 from typing import List, Any
 
-from google.cloud import storage
 from google.cloud.storage.bucket import Bucket
 
 from gcloud.aio.storage import Storage
@@ -16,8 +14,6 @@ from gcloud.aio.storage import Storage
 POI_BUCKET_NAME = "poi-disputes"
 
 ##Probably refactor this and pass it around the context?
-GCLOUD_CLIENT: storage.Client = storage.Client()
-BASE_BUCKET = GCLOUD_CLIENT.get_bucket(POI_BUCKET_NAME)
 
 
 async def list_objects(bucket_name=POI_BUCKET_NAME):
@@ -28,14 +24,25 @@ async def list_objects(bucket_name=POI_BUCKET_NAME):
         return results
 
 
-# async def get_or_create_bucket(bucket_name: str):
-#     async with aiohttp.ClientSession() as session:
-#         astorage = Storage(session=session)
+async def stream_dataframe_to_gcs(
+    matching_events: pd.DataFrame, dispute_id: str, bucket_name=POI_BUCKET_NAME
+):
+    """
+    Pushes dataframe to GCS without intermediate file.
 
-#         astorage.
-#     pass
+    Works by converting dataframe to a csv string and then using blob upload.
+    For large dataframes this probably won't work... would need to stream to a file.
 
-import ipdb
+    """
+
+    async with aiohttp.ClientSession() as session:
+        astorage = Storage(session=session)
+        bucket = astorage.get_bucket(bucket_name)
+        new_blob = bucket.new_blob("{}/matching_events.csv".format(dispute_id))
+        # Any benefit here in defining content type on string data?
+        result = await new_blob.upload(matching_events.to_csv())
+
+        return result
 
 
 async def upload_file(

@@ -1,6 +1,5 @@
 import logging
-from typing import List
-from pydantic import BaseModel
+
 from starlette.requests import Request
 from fastapi import APIRouter, File, UploadFile, HTTPException
 
@@ -11,15 +10,11 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-import ipdb
-
-
 @router.post("/upload-poi")
 async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     """
     Stream a bit stream into gcloud
     """
-    ipdb.set_trace()
     indexer_node = request.headers["indexer-node"]
     dispute_hash = request.headers["dispute-hash"]
 
@@ -45,9 +40,29 @@ async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     return result
 
 
-# @router.post("/uploadfiles/")
-# async def upload_files_to_gcloud(files: List[UploadFile] = File(...)):
-#     return {"filenames": [file.filename for file in files]}
+@router.post("/upload-entities")
+async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
+    """
+    Stream a bit stream into gcloud
+    """
+    indexer_node = request.headers["indexer-node"]
+    dispute_hash = request.headers["dispute-hash"]
+
+    resolver = await create_resolver(dispute_hash, indexer_node)
+
+    logger.info(
+        "Uploading file {} for indexer {} for dispute {}".format(
+            file.filename, indexer_node, dispute_hash
+        )
+    )
+    content = await file.read()
+
+    try:
+        result = await resolver.indexer_add_entities(content, file.filename)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="{}".format(e))
+
+    return result
 
 
 def init_app(app):

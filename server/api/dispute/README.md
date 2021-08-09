@@ -1,1 +1,1 @@
-Code for calculating divergent blocks.
+Code for calculating running through the dispute process.
