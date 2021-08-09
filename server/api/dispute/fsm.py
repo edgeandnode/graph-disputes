@@ -4,12 +4,12 @@ from typing import Optional
 from sqlalchemy import and_
 from transitions import Machine
 
+from ..graphql import get_subgraph_deployment_id_from_dispute
 from ..models import db
 from ..models.disputes import Dispute
-from ..models.indexer import Indexer
 from ..models.divergent_blocks import DivergentBlocks
 from ..models.indexer_uploads import IndexerUploads
-from ..storage.gcloud import upload_file, stream_dataframe_to_gcs, POI_BUCKET_NAME
+from ..storage.gcloud import upload_file, POI_BUCKET_NAME
 from .web3 import (
     get_matching_events,
     get_subgraph_data_sources,
@@ -56,6 +56,7 @@ class DisputeResolver(object):
 
     async def _init(self):
         state = await self.get_stage()
+        self.state = state
         if not state or state == "dispute_settled":
             # The dispute is inactive. Can't do anything.
             return None
@@ -113,7 +114,7 @@ class DisputeResolver(object):
         is_implicated = await Dispute.query.where(
             and_(
                 Dispute.dispute_id == self.dispute_id,
-                Dispute.indexer_ids.contains(self.indexer_id),
+                Dispute.indexer_ids.contains([self.indexer_id]),
             )
         ).gino.all()
         return len(is_implicated) > 0
@@ -138,6 +139,9 @@ class DisputeResolver(object):
         """
 
         # Check that this indexer is implicated in the dispute
+        import ipdb
+
+        ipdb.set_trace()
         is_implicated = await self.indexer_in_dispute()
 
         if not is_implicated:
@@ -164,6 +168,18 @@ class DisputeResolver(object):
         """
         Create divergent block entries and update the dispute state
         """
+        # ensure this is the right stage
+
+        stage = (
+            await Dispute.select("stage")
+            .where(Dispute.dispute_id == self.dispute_id)
+            .gino.scalar()
+        )
+
+        # Todo: Make the individual states have their own error messaging
+        if stage not in ["generated_divergent_blocks", "acquired_poi"]:
+            return None
+
         divergent_blocks = calculate_divergent_blocks(self.dispute_id)
 
         async with db.transaction(isolation="serializable") as tx_root:
@@ -175,9 +191,14 @@ class DisputeResolver(object):
                     divergent_blocks=divergent_blocks, dispute_id=self.dispute_id
                 )
 
-                dispute = await Dispute.update(
+                # Don't need this roundabout
+                dispute = await Dispute.query.where(
+                    Dispute.dispute_id == self.dispute_id
+                ).gino.first()
+
+                dispute = await dispute.update(
                     stage="generated_divergent_blocks"
-                ).where(Dispute.dispute_id == self.dispute_id)
+                ).apply()
 
                 await tx.commit()
             except:
@@ -185,6 +206,52 @@ class DisputeResolver(object):
                 return None
 
         return divergent_blocks
+
+    async def generate_matching_events(self):
+        """
+        Gathers divergent blocks and uses them to generate a set of
+        matching events against an ethereum node which are stashed in GCS.
+        """
+        # Returns int8[]
+        divergent_blocks = (
+            await DivergentBlocks.select("divergent_blocks")
+            .where(DivergentBlocks.dispute_id == self.dispute_id)
+            .gino.all()
+        )
+        all_blocks = []
+
+        for divergent_set in divergent_blocks:
+            all_blocks.extend(divergent_set.values()[0])
+        unique_blocks = list(set(all_blocks))
+
+        subgraph_id = (
+            await Dispute.select("subgraph_id")
+            .where(Dispute.dispute_id == self.dispute_id)
+            .gino.scalar()
+        )
+
+        if not subgraph_id:
+            # It wasn't included in the upload somehow. Use the dispute id to graph it.
+            subgraph_id = get_subgraph_deployment_id_from_dispute(self.dispute_id)
+
+        if not subgraph_id:
+            raise Exception("Can't find the subgraph")
+
+        manifest = get_subgraph_manifest(subgraph_id)
+        data_sources = get_subgraph_data_sources(manifest)
+        matching_events = get_matching_events(data_sources, unique_blocks)
+        # upload_result = await stream_dataframe_to_gcs(matching_events, self.dispute_id)
+        try:
+            # Lazily depending on pandas gcsfs api. Could do a streaming upload.
+            matching_events.to_csv(
+                "gs://{}/{}/matching_events.csv".format(
+                    POI_BUCKET_NAME, self.dispute_id
+                )
+            )
+            return matching_events
+        except Exception as e:
+            logger.error("Can't upload matching events to GCS")
+            raise e
 
     async def indexer_add_entities(self, content, file_name):
         """Keep a tally of the progress of each indexer's subgraph entities on the dispute"""
@@ -214,42 +281,6 @@ class DisputeResolver(object):
             data_kind="entities",
         )
         return object_path
-
-    async def generate_matching_events(self):
-        """
-        Gathers divergent blocks and uses them to generate a set of
-        matching events against an ethereum node which are stashed in GCS.
-        """
-        divergent_blocks = (
-            await DivergentBlocks.select("divergent_blocks")
-            .where(DivergentBlocks.dispute_id == self.dispute_id)
-            .gino.all()
-        )
-        all_blocks = []
-        for divergent_set in divergent_blocks:
-            all_blocks.extend(divergent_set)
-        unique_blocks = list(set(all_blocks))
-
-        subgraph_id = (
-            await Dispute.select("subgraph_id")
-            .where(Dispute.dispute_id == self.dispute_id)
-            .gino.scalar()
-        )
-
-        manifest = get_subgraph_manifest(subgraph_id)
-        data_sources = get_subgraph_data_sources(manifest)
-        matching_events = get_matching_events(data_sources, unique_blocks)
-        # upload_result = await stream_dataframe_to_gcs(matching_events, self.dispute_id)
-        try:
-            matching_events.to_csv(
-                "gs://{}/{}/matching_events.csv".format(
-                    POI_BUCKET_NAME, self.dispute_id
-                )
-            )
-            return True
-        except:
-            logger.error("Can't upload matching events to GCS")
-            raise Exception("Upload exception")
 
     async def notify_arbitrator(self):
         """Send an email/slack or some notification to E&N"""

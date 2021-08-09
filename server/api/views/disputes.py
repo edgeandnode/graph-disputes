@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -18,7 +18,7 @@ async def get_dispute(uid: str):
 
 
 class DisputeModel(BaseModel):
-    id: int
+    id: Optional[int] = None
     allocation_id: str
     indexer_ids: List[str]
 
@@ -29,14 +29,14 @@ async def add_dispute(dispute: DisputeModel):
     Create a new dispute. Gather the set of related indexers and track them.
 
     If indexers aren't in the database. generate entries for them.
-
-
     """
-    import ipdb
 
     async with db.transaction(isolation="serializable") as tx_root:
         conn = tx_root.connection
         tx = await conn.transaction()
+        import ipdb
+
+        ipdb.set_trace()
         try:
             created_dispute = await Dispute.create(
                 dispute_id=dispute.allocation_id,
@@ -50,6 +50,7 @@ async def add_dispute(dispute: DisputeModel):
             await tx.commit()
         except:
             await tx.rollback()
+
     return created_dispute.to_dict()
 
 

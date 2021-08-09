@@ -62,7 +62,7 @@ async def make_post_request(
         return await response.content.read()
 
 
-#IMPLEMENT `await_only`
+# IMPLEMENT `await_only`
 # class AIOHTTPProvider(Web3.HTTPProvider):
 #     def make_request(self, method: RPCEndpoint, params: Any) -> RPCResponse:
 #         self.logger.debug(
@@ -89,11 +89,7 @@ ETHEREUM_API_URL = (
     "https://eth-mainnet.alchemyapi.io/v2/mWSH9YlhpXfXymzLxptC1TE2CIy2QuMA"
 )
 
-w3 = Web3(
-    Web3.HTTPProvider(
-        ETHEREUM_API_URL
-    )
-)
+w3 = Web3(Web3.HTTPProvider(ETHEREUM_API_URL))
 
 # w3 = Web3(AIOHTTPProvider(ETHEREUM_API_URL))
 
@@ -130,11 +126,9 @@ def get_matching_events(datasources, divergent_blocks):
     )
     for source in datasources:
         address = w3.toChecksumAddress(source.address)
-        print("source address", address)
         contract_abi = source.abi.decode("utf-8")
         contract = w3.eth.contract(address=address, abi=contract_abi)
         for block in divergent_blocks:
-            print("  block:", block)
             logs_filter_params = {
                 "fromBlock": block,
                 "toBlock": block,
@@ -158,14 +152,6 @@ def get_matching_events(datasources, divergent_blocks):
                         tx_receipt = w3.eth.get_transaction_receipt(log.transactionHash)
                         decoded_logs = contract_event().processReceipt(tx_receipt)
                         for decoded_log in decoded_logs:
-                            print("    - event:", contract_event.event_name)
-                            print("      log_params:")
-                            for arg, value in decoded_log.args.items():
-                                print(
-                                    "          {arg}: {value}".format(
-                                        arg=arg, value=value
-                                    )
-                                )
                             matching_events = matching_events.append(
                                 {
                                     "address": address,

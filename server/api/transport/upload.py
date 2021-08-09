@@ -1,5 +1,6 @@
 import logging
-
+from typing import Optional
+from pydantic import BaseModel
 from starlette.requests import Request
 from fastapi import APIRouter, File, UploadFile, HTTPException
 
@@ -10,7 +11,11 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/upload-poi")
+class IndexerUploadResponse(BaseModel):
+    upload_path: Optional[str]
+
+
+@router.post("/upload-poi", response_model=IndexerUploadResponse)
 async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     """
     Stream a bit stream into gcloud
@@ -37,11 +42,11 @@ async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="{}".format(e))
 
-    return result
+    return IndexerUploadResponse(upload_path=result)
 
 
-@router.post("/upload-entities")
-async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
+@router.post("/upload-entities", response_model=IndexerUploadResponse)
+async def upload_entities_to_gcloud(request: Request, file: UploadFile = File(...)):
     """
     Stream a bit stream into gcloud
     """
@@ -62,7 +67,7 @@ async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="{}".format(e))
 
-    return result
+    return IndexerUploadResponse(upload_path=result)
 
 
 def init_app(app):

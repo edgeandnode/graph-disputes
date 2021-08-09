@@ -1,8 +1,8 @@
-"""make indexer datetime default to current time
+"""make indexer metadata nullable
 
-Revision ID: 5e63b2f8ab2b
-Revises: 294b345c4911
-Create Date: 2021-08-04 16:11:28.695693
+Revision ID: 1d6e912df503
+Revises: 3ddcb30210b0
+Create Date: 2021-08-09 13:04:06.776583
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5e63b2f8ab2b'
-down_revision = '294b345c4911'
+revision = '1d6e912df503'
+down_revision = '3ddcb30210b0'
 branch_labels = None
 depends_on = None
 

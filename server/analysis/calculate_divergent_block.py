@@ -163,7 +163,9 @@ def dfs_to_divergent_blocks(dfs: List[pd.DataFrame]) -> pd.DataFrame:
 def generate_indexer_pair(df: pd.DataFrame) -> pd.DataFrame:
     df["indexer_id_1"] = df["comparison"].map(lambda x: x.split("_")[0])
     df["indexer_id_2"] = df["comparison"].map(lambda x: x.split("_")[-1])
-    df["divergent_block"] = df["divergent_block"].map(lambda x: [x])
+    df["divergent_blocks"] = df["divergent_block"].map(lambda x: [x])
+    df = df.drop(["comparison", "divergent_block"], axis=1)
+
     return df
 
 

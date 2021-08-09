@@ -27,6 +27,8 @@ gcloud-aio-auth = "^3.6.1"
 tensorflow = "^2.5.0"
 gql = "^2.0.0"
 greenlet = "^1.1.1"
+fsspec = "^2021.7.0"
+gcsfs = "^2021.7.0"
 
 [tool.poetry.dev-dependencies]
 ipdb = "^0.13.9"

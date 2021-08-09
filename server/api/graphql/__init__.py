@@ -80,7 +80,19 @@ def get_dispute_from_id(client, dispute_id: str) -> dict:
     return disp
 
 
-def get_subgraph_deployment_id_from_dispute(dispute_dictionary: dict):
+def get_subgraph_deployment_id_from_dispute(dispute_id):
+    sync_transport = RequestsHTTPTransport(
+        url=NETWORK_SUBGRAPH,
+        verify=False,
+        retries=3,
+    )
+
+    client = Client(
+        transport=sync_transport,
+        fetch_schema_from_transport=True,
+    )
+
+    dispute_dictionary = get_dispute_from_id(client, dispute_id)
     dispute = dispute_dictionary.get("dispute", {})
     if not dispute:
         return ""

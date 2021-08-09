@@ -27,15 +27,15 @@ class Dispute(db.Model):
     current_time = db.Column(DateTime, nullable=False, default=datetime.datetime.utcnow)
     ##All indexers implicated in the dispute
     indexer_ids = db.Column("indexer_ids", ARRAY(String))
-    stage = db.Column(db.String())
+    stage = db.Column(db.String(), nullable=True, default="waiting_for_poi")
     dispute_stage = Column(
         Enum(DisputeStage),
         nullable=True,
         default=DisputeStage.waiting_for_poi,
     )
-    subgraph_id = db.Column(db.String())
+    subgraph_id = db.Column(db.String(), nullable=True)
     ##Store things like the divergent ids, or any extra data
-    metadata = db.Column("metadata", JSONB)
+    metadata = db.Column("metadata", JSONB, nullable=True)
 
     @classmethod
     async def get_poi_table_paths(cls, dispute_id):

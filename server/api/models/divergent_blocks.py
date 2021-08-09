@@ -1,8 +1,7 @@
 import datetime
 import pandas as pd
 from . import db
-from sqlalchemy import *
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, insert
 
 
 class DivergentBlocks(db.Model):
@@ -12,7 +11,7 @@ class DivergentBlocks(db.Model):
 
     __tablename__ = "divergent_blocks"
     id = db.Column(db.BigInteger(), primary_key=True)
-    current_time = db.Column(DateTime, default=datetime.datetime.utcnow)
+    current_time = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     ##Allocation POI being disputed
     dispute_id = db.Column(db.String())
     ##Divergent ids exist between PAIRS of indexers.
@@ -36,17 +35,16 @@ class DivergentBlocks(db.Model):
     def bulk_upsert(cls, divergent_blocks: pd.DataFrame, dispute_id: str):
         dictionary_blocks = divergent_blocks.to_dict(orient="records")
 
-        qs = insert(cls.__table__).values(
-            [
-                divergent_block.update(dispute_id=dispute_id)
-                for divergent_block in dictionary_blocks
-            ]
-        )
+        [
+            divergent_block.update(dispute_id=dispute_id)
+            for divergent_block in dictionary_blocks
+        ]
+        qs = insert(cls.__table__).values(dictionary_blocks)
         return (
             qs.on_conflict_do_update(
                 index_elements=[cls.dispute_id, cls.indexer_id_1, cls.indexer_id_2],
                 set_={
-                    "updated_at": datetime.utcnow()
+                    "updated_at": datetime.datetime.utcnow()
                 },  # or even qs.excluded['some_column']
             )
             .returning(DivergentBlocks.__table__)

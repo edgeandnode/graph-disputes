@@ -336,7 +336,7 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 name = "decorator"
 version = "5.0.9"
 description = "Decorators for Humans"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -533,6 +533,31 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "fsspec"
+version = "2021.7.0"
+description = "File-system specification"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+abfs = ["adlfs"]
+adl = ["adlfs"]
+dask = ["dask", "distributed"]
+dropbox = ["dropboxdrivefs", "requests", "dropbox"]
+entrypoints = ["importlib-metadata"]
+gcs = ["gcsfs"]
+git = ["pygit2"]
+github = ["requests"]
+gs = ["gcsfs"]
+hdfs = ["pyarrow (>=1)"]
+http = ["requests", "aiohttp"]
+s3 = ["s3fs"]
+sftp = ["paramiko"]
+smb = ["smbprotocol"]
+ssh = ["paramiko"]
+
+[[package]]
 name = "future"
 version = "0.18.2"
 description = "Clean single-source support for Python 3 and 2"
@@ -578,6 +603,26 @@ aiofiles = ">=0.6.0,<1.0.0"
 gcloud-aio-auth = ">=3.6.0,<4.0.0"
 pyasn1-modules = ">=0.2.1,<0.3.0"
 rsa = {version = ">=3.1.4,<5.0.0", markers = "python_version >= \"3.6\""}
+
+[[package]]
+name = "gcsfs"
+version = "2021.7.0"
+description = "Convenient Filesystem interface over GCS"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+aiohttp = "*"
+decorator = "*"
+fsspec = "2021.07.0"
+google-auth = ">=1.2"
+google-auth-oauthlib = "*"
+requests = "*"
+
+[package.extras]
+crc = ["crcmod"]
+gcsfuse = ["fusepy"]
 
 [[package]]
 name = "gino"
@@ -2211,7 +2256,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "67a1c6ef7579e17cb88b226a221e3c27ceffbc57ceecb2af02f62ffd64737682"
+content-hash = "c201bb48f2f3ee46667db907c88a0b39f342b2c11926bd7996a46264613c6d14"
 
 [metadata.files]
 absl-py = [
@@ -2581,6 +2626,10 @@ flatbuffers = [
     {file = "flatbuffers-1.12-py2.py3-none-any.whl", hash = "sha256:9e9ef47fa92625c4721036e7c4124182668dc6021d9e7c73704edd395648deb9"},
     {file = "flatbuffers-1.12.tar.gz", hash = "sha256:63bb9a722d5e373701913e226135b28a6f6ac200d5cc7b4d919fa38d73b44610"},
 ]
+fsspec = [
+    {file = "fsspec-2021.7.0-py3-none-any.whl", hash = "sha256:86822ccf367da99957f49db64f7d5fd3d8d21444fac4dfdc8ebc38ee93d478c6"},
+    {file = "fsspec-2021.7.0.tar.gz", hash = "sha256:792ebd3b54de0b30f1ce73f0ba0a8bcc864724f2d9f248cb8d0ece47db0cbde8"},
+]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
@@ -2595,6 +2644,10 @@ gcloud-aio-auth = [
 gcloud-aio-storage = [
     {file = "gcloud-aio-storage-6.1.0.tar.gz", hash = "sha256:4ac5df0e934981973a58dafca10a49cf8e1e2dcc48f7ae4e20298b3ae3e047cf"},
     {file = "gcloud_aio_storage-6.1.0-py2.py3-none-any.whl", hash = "sha256:bca5f155aa018b20ccb557336e2f296e6fdbbe48ee81a5f501717940fc377c78"},
+]
+gcsfs = [
+    {file = "gcsfs-2021.7.0-py2.py3-none-any.whl", hash = "sha256:ca07037a6ce29f112733c875a0e6a34c14d0ca3227f6bf0e16d7e8d92000accf"},
+    {file = "gcsfs-2021.7.0.tar.gz", hash = "sha256:8ac2ed5ca689ac26c78e074240a57bf51331e8627be4120e62555c68432c4847"},
 ]
 gino = [
     {file = "gino-1.0.1-py3-none-any.whl", hash = "sha256:56df57cfdefbaf897a7c4897c265a0e91a8cca80716fb64f7d3cf6d501fdfb3d"},
