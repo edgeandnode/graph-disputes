@@ -1,7 +1,8 @@
 import datetime
 import pandas as pd
-from . import db
+
 from sqlalchemy.dialects.postgresql import ARRAY, insert
+from . import db
 
 
 class DivergentBlocks(db.Model):
@@ -15,7 +16,12 @@ class DivergentBlocks(db.Model):
     ##Allocation POI being disputed
     dispute_id = db.Column(db.String())
     ##Divergent ids exist between PAIRS of indexers.
-    ##@TODO: Maybe this isn't the right way of going about this.
+    """
+    @TODO: Maybe using pairs isn't the right way of going about this?
+
+    If we consider divergent blocks as a graph, every pair of indexers 
+    can potentially have a different set of divergent blocks.
+    """
     indexer_id_1 = db.Column(db.String())
     indexer_id_2 = db.Column(db.String())
 

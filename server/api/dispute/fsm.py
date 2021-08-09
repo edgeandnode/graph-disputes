@@ -139,9 +139,6 @@ class DisputeResolver(object):
         """
 
         # Check that this indexer is implicated in the dispute
-        import ipdb
-
-        ipdb.set_trace()
         is_implicated = await self.indexer_in_dispute()
 
         if not is_implicated:

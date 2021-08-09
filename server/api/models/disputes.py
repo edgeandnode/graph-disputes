@@ -1,11 +1,11 @@
+import enum
 import datetime
+
+from sqlalchemy import *
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 
 from . import db
 from .indexer_uploads import IndexerUploads
-
-import enum
-from sqlalchemy import *
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 
 
 class DisputeStage(enum.Enum):

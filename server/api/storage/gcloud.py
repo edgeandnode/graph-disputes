@@ -9,9 +9,8 @@ from google.cloud.storage.bucket import Bucket
 
 from gcloud.aio.storage import Storage
 
+##Probably refactor this and make it a parameter or enviornment variable?
 POI_BUCKET_NAME = "poi-disputes"
-
-##Probably refactor this and pass it around the context?
 
 
 async def list_objects(bucket_name=POI_BUCKET_NAME):
@@ -76,10 +75,12 @@ async def upload_file(
         return (status, object_path)
 
 
+@DeprecationWarning
 async def pull_bucket_contents(
     bucket: Bucket, dispute_id: str, indexer_id: str
 ) -> List[str]:
     """
+
     Gather all of the contents of a bucket for an indexer id.
     Returns paths to downloaded data.
 
