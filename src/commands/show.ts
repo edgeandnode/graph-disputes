@@ -45,7 +45,7 @@ export const showCommand = {
     // This can help find bugs in the software
     if (rainbow) {
       const endBlock = dispute.allocation.closedAtBlockNumber
-      const startBlock = disputeEntry.referencePoi.prevEpoch.startBlock
+      const startBlock = disputeEntry.POI.Reference.prevEpoch.startBlock
       const blockDiff = endBlock - startBlock
       const bar = new SingleBar({
         format:
