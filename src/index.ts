@@ -14,7 +14,10 @@ import { showCommand } from './commands/show'
 import { inspectCommand } from './commands/inspect'
 
 yargs.middleware(async argv => {
-  return { env: await setupEnv(argv) }
+  if (argv._[0] !== 'setup') {
+    return { env: await setupEnv(argv) }
+  }
+  return {}
 })
 
 yargs
