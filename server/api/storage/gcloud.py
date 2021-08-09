@@ -1,11 +1,9 @@
-import os
 import logging
-import asyncio
 import aiohttp
 import pandas as pd
 
 from pathlib import Path
-from typing import List, Any
+from typing import List
 
 from google.cloud.storage.bucket import Bucket
 

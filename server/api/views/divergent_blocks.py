@@ -4,9 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import and_, or_
 from starlette.requests import Request
 
-from sqlalchemy.dialects.postgresql import insert
 
-from ..models import db
 from ..models.divergent_blocks import DivergentBlocks
 from ..dispute.fsm import create_resolver
 
@@ -101,7 +99,9 @@ async def generate_divergent_blocks(dispute_id: str, request: Request):
     Just used for testing.
 
     """
-    dsp =  create_resolver(dispute_id,)
+    dsp = create_resolver(
+        dispute_id,
+    )
 
 
 def init_app(app):

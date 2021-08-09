@@ -8,17 +8,17 @@ NETWORK_SUBGRAPH = (
     "https://api.thegraph.com/subgraphs/name/graphprotocol/graph-network-mainnet"
 )
 
-sync_transport = RequestsHTTPTransport(
-    url=NETWORK_SUBGRAPH,
-    verify=False,
-    retries=3,
-)
+# sync_transport = RequestsHTTPTransport(
+#     url=NETWORK_SUBGRAPH,
+#     verify=False,
+#     retries=3,
+# )
 
 # Make it so this gets instantiated in the function call and passed as a parameter.
-client = Client(
-    transport=sync_transport,
-    fetch_schema_from_transport=True,
-)
+# client = Client(
+#     transport=sync_transport,
+#     fetch_schema_from_transport=True,
+# )
 
 EXAMPLE_DISPUTE_ID = (
     "0x08e959b7cf82f4935a5063721d7b7a01a0b33ebf0c8056b4d7ce4d126e7049a3"
@@ -71,7 +71,7 @@ GATHER_DISPUTE_QUERY = gql(
 )
 
 
-def get_dispute_from_id(dispute_id: str) -> dict:
+def get_dispute_from_id(client, dispute_id: str) -> dict:
     """
     Query against network subgraph to get information about a dispute
     """
@@ -119,7 +119,7 @@ GATHER_INDEXERS_FOR_SUBGRAPH_QUERY = gql(
 )
 
 
-def get_subgraph_deployment(subgraph_deployment: str):
+def get_subgraph_deployment(client, subgraph_deployment: str):
     """
     Make a call against the network subgraph for data pertinent to a subgraph deployment.
     """
