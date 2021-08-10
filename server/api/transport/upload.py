@@ -18,7 +18,7 @@ class IndexerUploadResponse(BaseModel):
 @router.post("/upload-poi", response_model=IndexerUploadResponse)
 async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     """
-    Stream a bit stream into gcloud
+    Stream a file of poi into gcloud
     """
     indexer_node = request.headers["indexer-node"]
     dispute_hash = request.headers["dispute-hash"]
@@ -48,7 +48,7 @@ async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
 @router.post("/upload-entities", response_model=IndexerUploadResponse)
 async def upload_entities_to_gcloud(request: Request, file: UploadFile = File(...)):
     """
-    Stream a bit stream into gcloud
+    Stream a file of entitites into gcloud
     """
     indexer_node = request.headers["indexer-node"]
     dispute_hash = request.headers["dispute-hash"]
