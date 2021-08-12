@@ -12,12 +12,17 @@ export const listCommand = {
   command: 'list',
   describe: 'List disputes',
   builder: (yargs: Argv): Argv => {
-    return yargs.option('status', {
-      description: 'Dispute status',
-      type: 'string',
-      choices: ['accepted', 'rejected', 'draw', 'undecided', 'all'],
-      default: 'undecided',
-    })
+    return yargs
+      .option('status', {
+        description: 'Dispute status',
+        type: 'string',
+        choices: ['accepted', 'rejected', 'draw', 'undecided', 'all'],
+        default: 'undecided',
+      })
+      .usage(
+        '$0 [--status <accepted|rejected|draw|undecided|all>]',
+        'List disputes',
+      )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
