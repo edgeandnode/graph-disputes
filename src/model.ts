@@ -96,12 +96,18 @@ export const getAllocation = async (
 
 export const getDisputes = async (
   networkSubgraph: Client,
+  status: string,
 ): Promise<Dispute[]> => {
+  const where = status ? '{ status: $status }' : '{}'
   const result = await networkSubgraph
     .query(
       gql`
-        {
-          disputes(orderBy: "createdAt", orderDirection: "asc") {
+        query($status: DisputeStatus) {
+          disputes(
+            orderBy: "createdAt"
+            orderDirection: "asc"
+            where: ${where}
+          ) {
             id
             type
             status
@@ -127,6 +133,7 @@ export const getDisputes = async (
           }
         }
       `,
+      { status },
     )
     .toPromise()
   return result.data.disputes

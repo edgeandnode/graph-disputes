@@ -11,6 +11,14 @@ import { getDisputes } from '../model'
 export const listCommand = {
   command: 'list',
   describe: 'List disputes',
+  builder: (yargs: Argv): Argv => {
+    return yargs.option('status', {
+      description: 'Dispute status',
+      type: 'string',
+      choices: ['accepted', 'rejected', 'draw', 'undecided', 'all'],
+      default: 'undecided',
+    })
+  },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
@@ -20,7 +28,12 @@ export const listCommand = {
     // Get disputes to list
     const spinner = ora('Loading disputes...\n').start()
     const data = {}
-    const disputes = await getDisputes(networkSubgraph)
+    // capitalize the status
+    const status =
+      argv.status === 'all'
+        ? undefined
+        : argv.status[0].toUpperCase() + argv.status.substring(1)
+    const disputes = await getDisputes(networkSubgraph, status)
     log.info(`Found: ${disputes.length}\n`)
 
     // Process each dispute and populate additional information
