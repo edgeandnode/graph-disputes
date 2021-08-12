@@ -36,7 +36,7 @@ Run `graph-disputes` with no parameters to see a list of commands.
 graph-dispute setup
 
 # General
-graph-disputes dispute list
+graph-disputes dispute list [--status <accepted|rejected|draw|undecided|all>]
 graph-disputes dispute show <disputeID>
 
 # Submitter
