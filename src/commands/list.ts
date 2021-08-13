@@ -6,7 +6,7 @@ import { Argv } from 'yargs'
 
 import { log } from '../logging'
 import { populateEntry } from '../dispute'
-import { getDisputes } from '../model'
+import { getDisputes, getNetworkSettings } from '../model'
 
 export const listCommand = {
   command: 'list',
@@ -36,13 +36,19 @@ export const listCommand = {
       argv.status === 'all'
         ? undefined
         : argv.status[0].toUpperCase() + argv.status.substring(1)
+    const networkSettings = await getNetworkSettings(networkSubgraph)
     const disputes = await getDisputes(networkSubgraph, status)
     log.info(`Found: ${disputes.length}\n`)
 
     // Process each dispute and populate additional information
     await Promise.all(
       disputes.map(async dispute => {
-        const disputeEntry = await populateEntry(dispute, env, false)
+        const disputeEntry = await populateEntry(
+          dispute,
+          env,
+          networkSettings,
+          false,
+        )
         data[chalk.whiteBright.underline(dispute.id)] = disputeEntry
       }),
     )

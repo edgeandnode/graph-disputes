@@ -18,6 +18,7 @@ export interface Allocation {
   poi: string
   indexer?: Indexer
   subgraphDeployment?: SubgraphDeployment
+  indexingIndexerRewards?: number
 }
 
 export interface SubgraphDeployment {
@@ -30,6 +31,9 @@ export interface Fisherman {
 
 export interface Indexer {
   id: string
+  indexer: {
+    stakedTokens: number
+  }
 }
 
 export interface Dispute {
@@ -41,6 +45,12 @@ export interface Dispute {
   subgraphDeployment: SubgraphDeployment
   indexer: Indexer
   fisherman: Fisherman
+}
+
+export interface GraphNetwork {
+  indexingSlashingPercentage: number
+  minimumDisputeDeposit: number
+  querySlashingPercentage: number
 }
 
 export const getEpoch = async (
@@ -120,12 +130,16 @@ export const getDisputes = async (
               closedAtBlockHash
               closedAtBlockNumber
               poi
+              indexingIndexerRewards
             }
             subgraphDeployment {
               id
             }
             indexer {
               id
+              indexer {
+                stakedTokens
+              }
             }
             fisherman {
               id
@@ -177,4 +191,24 @@ export const getDispute = async (
     )
     .toPromise()
   return result.data.dispute
+}
+
+export const getNetworkSettings = async (
+  networkSubgraph: Client,
+): Promise<GraphNetwork> => {
+  const networkId = 1
+  const result = await networkSubgraph
+    .query(
+      gql`
+        query($networkId: Int!) {
+          graphNetwork(id: $networkId) {
+            id
+            indexingSlashingPercentage
+          }
+        }
+      `,
+      { networkId },
+    )
+    .toPromise()
+  return result.data.graphNetwork
 }

@@ -6,7 +6,7 @@ import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManag
 import { log } from './logging'
 import { populateEntry } from './dispute'
 import { Environment } from './env'
-import { getDispute } from './model'
+import { getDispute, getNetworkSettings } from './model'
 import { waitTransaction } from './network'
 import { askConfirm } from './utils'
 
@@ -65,7 +65,13 @@ export class DisputeResolver {
   async showResolution(disputeID: string): Promise<void> {
     const spinner = ora('Loading dispute...\n').start()
     const dispute = await getDispute(this.env.networkSubgraph, disputeID)
-    const disputeEntry = await populateEntry(dispute, this.env, true)
+    const networkSettings = await getNetworkSettings(this.env.networkSubgraph)
+    const disputeEntry = await populateEntry(
+      dispute,
+      this.env,
+      networkSettings,
+      true,
+    )
     spinner.stop()
 
     log.info(treeify.asTree(disputeEntry, true, true))

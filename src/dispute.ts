@@ -1,8 +1,10 @@
 import chalk from 'chalk'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
+import { BigNumber } from 'ethers'
 
-import { getEpoch, Dispute } from './model'
+import { getEpoch, Dispute, GraphNetwork } from './model'
 import { Environment } from './env'
+import { toGRT } from './utils'
 
 function styleBoolean(value: boolean) {
   return value ? chalk.greenBright(value) : chalk.redBright(value)
@@ -39,6 +41,7 @@ function relativeDays(ts: number) {
 export const populateEntry = async (
   dispute: Dispute,
   env: Environment,
+  networkSettings: GraphNetwork,
   extended = false,
 ): Promise<any> => {
   const { networkSubgraph, provider, poiChecker } = env
@@ -65,6 +68,15 @@ export const populateEntry = async (
   const hasProof = lastPoi && prevPoi
 
   const lastActionAgo = relativeDays(dispute.createdAt)
+  const partsPerMillion = 1000000
+  const slashableStake = toGRT(
+    BigNumber.from(dispute.indexer.indexer.stakedTokens)
+      .mul(networkSettings.indexingSlashingPercentage)
+      .div(partsPerMillion),
+  )
+  const indexingRewards = toGRT(
+    BigNumber.from(dispute.allocation.indexingIndexerRewards),
+  )
 
   // Assemble dispute data
   const disputeEntry = {
@@ -74,6 +86,10 @@ export const populateEntry = async (
     Fisherman: chalk.cyanBright(dispute.fisherman.id),
     SubgraphDeployment: {
       id: `${subgraphDeployment.bytes32} (${subgraphDeployment.ipfsHash})`,
+    },
+    Economics: {
+      indexerSlashableStake: chalk.greenBright(`${slashableStake} GRT`),
+      indexingRewardsCollected: chalk.greenBright(`${indexingRewards} GRT`),
     },
     Allocation: {
       id: chalk.cyanBright(dispute.allocation.id),

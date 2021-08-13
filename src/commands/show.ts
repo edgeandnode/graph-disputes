@@ -8,7 +8,7 @@ import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
 import { log } from '../logging'
 import { populateEntry } from '../dispute'
-import { getDispute } from '../model'
+import { getDispute, getNetworkSettings } from '../model'
 import { Poi } from '../poi'
 
 export const showCommand = {
@@ -34,7 +34,13 @@ export const showCommand = {
     // Get dispute
     const spinner = ora('Loading dispute...\n').start()
     const dispute = await getDispute(networkSubgraph, disputeID)
-    const disputeEntry = await populateEntry(dispute, env, true)
+    const networkSettings = await getNetworkSettings(networkSubgraph)
+    const disputeEntry = await populateEntry(
+      dispute,
+      env,
+      networkSettings,
+      true,
+    )
     log.info(`Dispute #${disputeID}`)
     log.info('-------')
     log.info(treeify.asTree({ ...disputeEntry }, true, true))
