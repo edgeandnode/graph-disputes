@@ -10,7 +10,7 @@ from ..models.disputes import Dispute
 from ..models.divergent_blocks import DivergentBlocks
 from ..models.indexer_uploads import IndexerUploads
 from ..storage.gcloud import upload_file, POI_BUCKET_NAME
-from .web3 import (
+from .w3 import (
     get_matching_events,
     get_subgraph_data_sources,
     get_subgraph_manifest,

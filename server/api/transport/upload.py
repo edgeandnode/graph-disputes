@@ -26,7 +26,7 @@ async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
     resolver = await create_resolver(dispute_hash, indexer_node)
     stage = await resolver.get_stage()
 
-    if not stage:
+    if not stage or stage != "waiting_for_poi":
         logger.info("This dispute does not exist")
         raise HTTPException(status_code=404, detail="Dispute not found")
 
