@@ -49,14 +49,23 @@ export const listCommand = {
           networkSettings,
           false,
         )
-        data[chalk.whiteBright.underline(dispute.id)] = disputeEntry
+        data[dispute.id] = disputeEntry
       }),
     )
     spinner.stop()
 
+    // sort disputes
+    const findDisputeById = (id: string) => disputes.find(d => d.id === id)
+    const orderedDisputeIds = Object.keys(data).sort((d1, d2) =>
+      findDisputeById(d1).createdAt > findDisputeById(d2).createdAt ? 1 : -1,
+    )
+    const sortedData = {}
+    orderedDisputeIds.forEach(disputeId => {
+      sortedData[chalk.whiteBright.underline(disputeId)] = data[disputeId]
+    })
     // Display disputes
     log.info('Disputes')
     log.info('--------')
-    log.info(treeify.asTree(data, true, true))
+    log.info(treeify.asTree(sortedData, true, true))
   },
 }
