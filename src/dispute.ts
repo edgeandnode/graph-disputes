@@ -78,12 +78,23 @@ export const populateEntry = async (
     BigNumber.from(dispute.allocation.indexingIndexerRewards),
   )
 
+  const indexerName = dispute.indexer.defaultDisplayName
+  const fishermanName = dispute.fisherman.defaultDisplayName
+
   // Assemble dispute data
   const disputeEntry = {
     Type: styleType(dispute.type),
     Status: `${styleDisputeStatus(dispute.status)} (${lastActionAgo} days ago)`,
-    Indexer: chalk.cyanBright(dispute.indexer.id),
-    Fisherman: chalk.cyanBright(dispute.fisherman.id),
+    Indexer: chalk.cyanBright(
+      indexerName
+        ? `${indexerName} (${dispute.indexer.id})`
+        : dispute.indexer.id,
+    ),
+    Fisherman: chalk.cyanBright(
+      fishermanName
+        ? `${fishermanName} (${dispute.fisherman.id})`
+        : dispute.fisherman.id,
+    ),
     SubgraphDeployment: {
       id: `${subgraphDeployment.bytes32} (${subgraphDeployment.ipfsHash})`,
     },

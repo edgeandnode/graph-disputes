@@ -27,10 +27,12 @@ export interface SubgraphDeployment {
 
 export interface Fisherman {
   id: string
+  defaultDisplayName: string
 }
 
 export interface Indexer {
   id: string
+  defaultDisplayName: string
   indexer: {
     stakedTokens: number
   }
@@ -137,12 +139,14 @@ export const getDisputes = async (
             }
             indexer {
               id
+              defaultDisplayName
               indexer {
                 stakedTokens
               }
             }
             fisherman {
               id
+              defaultDisplayName
             }
           }
         }
