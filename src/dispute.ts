@@ -32,10 +32,30 @@ function styleDisputeStatus(status: string) {
   return chalk.dim(status)
 }
 
+function styleClosedAtEpoch(
+  closedAtEpoch: number,
+  networkSettings: GraphNetwork,
+) {
+  if (isDisputeOlderThanTwoThawingPeriods(closedAtEpoch, networkSettings)) {
+    return chalk.redBright(closedAtEpoch)
+  }
+  return closedAtEpoch
+}
+
 const DAY_SECONDS = 60 * 60 * 24
 
 function relativeDays(ts: number) {
   return ((+new Date() / 1000 - ts) / DAY_SECONDS).toFixed(2)
+}
+
+export const isDisputeOlderThanTwoThawingPeriods = (
+  closedAtEpoch: number,
+  networkSettings: GraphNetwork,
+): boolean => {
+  const { currentEpoch, thawingPeriod, epochLength } = networkSettings
+  const thawingPeriodInEpochs = Math.round(thawingPeriod / epochLength)
+
+  return currentEpoch - closedAtEpoch > 2 * thawingPeriodInEpochs
 }
 
 export const populateEntry = async (
@@ -106,7 +126,10 @@ export const populateEntry = async (
       id: chalk.cyanBright(dispute.allocation.id),
       createdAtEpoch: dispute.allocation.createdAtEpoch,
       createdAtBlock: dispute.allocation.createdAtBlockHash,
-      closedAtEpoch: dispute.allocation.closedAtEpoch,
+      closedAtEpoch: styleClosedAtEpoch(
+        dispute.allocation.closedAtEpoch,
+        networkSettings,
+      ),
       closedAtBlock: `${dispute.allocation.closedAtBlockHash} (#${dispute.allocation.closedAtBlockNumber})`,
     },
     POI: {

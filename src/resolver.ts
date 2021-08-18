@@ -1,10 +1,11 @@
 import { providers } from 'ethers'
 import treeify from 'treeify'
 import ora from 'ora'
+import chalk from 'chalk'
 import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManager'
 
 import { log } from './logging'
-import { populateEntry } from './dispute'
+import { populateEntry, isDisputeOlderThanTwoThawingPeriods } from './dispute'
 import { Environment } from './env'
 import { getDispute, getNetworkSettings } from './model'
 import { waitTransaction } from './network'
@@ -80,6 +81,23 @@ export class DisputeResolver {
     // TODO: show the bond the submitter will get
   }
 
+  async validateStatuteOfLimitations(disputeID: string): Promise<boolean> {
+    const dispute = await getDispute(this.env.networkSubgraph, disputeID)
+    const networkSettings = await getNetworkSettings(this.env.networkSubgraph)
+    return !isDisputeOlderThanTwoThawingPeriods(
+      dispute.allocation.closedAtEpoch,
+      networkSettings,
+    )
+  }
+
+  showStatuteOfLimitationsError(): void {
+    const message = chalk.redBright(`
+    This dispute cannot be accepted or rejected because its allocation closed more than 2 thawing periods ago.
+    For more information refer to the Arbitration Charter, Section 6: Statute of Limitations.
+    `)
+    log.error(message)
+  }
+
   async commit(
     disputeID: string,
     resolve: DisputeResolution,
@@ -105,13 +123,21 @@ export class DisputeResolver {
   @confirmResolve
   async accept(disputeID: string, execute = false): Promise<void> {
     log.info(`Accepting dispute ${disputeID}...`)
-    await this.commit(disputeID, DisputeResolution.Accept, execute)
+    if (await this.validateStatuteOfLimitations(disputeID)) {
+      await this.commit(disputeID, DisputeResolution.Accept, execute)
+    } else {
+      this.showStatuteOfLimitationsError()
+    }
   }
 
   @confirmResolve
   async reject(disputeID: string, execute = false): Promise<void> {
     log.info(`Rejecting dispute ${disputeID}...`)
-    await this.commit(disputeID, DisputeResolution.Reject, execute)
+    if (await this.validateStatuteOfLimitations(disputeID)) {
+      await this.commit(disputeID, DisputeResolution.Reject, execute)
+    } else {
+      this.showStatuteOfLimitationsError()
+    }
   }
 
   @confirmResolve
