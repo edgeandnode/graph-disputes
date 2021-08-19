@@ -53,6 +53,9 @@ export interface GraphNetwork {
   indexingSlashingPercentage: number
   minimumDisputeDeposit: number
   querySlashingPercentage: number
+  currentEpoch: number
+  thawingPeriod: number
+  epochLength: number
 }
 
 export const getEpoch = async (
@@ -178,15 +181,21 @@ export const getDispute = async (
               closedAtBlockHash
               closedAtBlockNumber
               poi
+              indexingIndexerRewards
             }
             subgraphDeployment {
               id
             }
             indexer {
               id
+              defaultDisplayName
+              indexer {
+                stakedTokens
+              }
             }
             fisherman {
               id
+              defaultDisplayName
             }
           }
         }
@@ -208,6 +217,9 @@ export const getNetworkSettings = async (
           graphNetwork(id: $networkId) {
             id
             indexingSlashingPercentage
+            currentEpoch
+            thawingPeriod
+            epochLength
           }
         }
       `,
