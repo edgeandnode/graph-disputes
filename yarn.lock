@@ -2134,6 +2134,11 @@ object-assign@^4:
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
   integrity sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=
 
+object-treeify@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/object-treeify/-/object-treeify-2.0.0.tgz#4c6c7f016f69b5f84c5f7d882bf41d18bdf03acb"
+  integrity sha512-OGm5j85dYrJ8fqMEZMe59QS4AuQmfM0A/QTiZEGTnEeOSQPjdC8zdmWq2DmhLBAZr/JYL0cd8SQaIboTzg9/EQ==
+
 on-finished@~2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/on-finished/-/on-finished-2.3.0.tgz#20f1336481b083cd75337992a16971aa2d906947"

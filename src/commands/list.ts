@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ora from 'ora'
-import treeify from 'treeify'
+import treeify from 'object-treeify'
 import chalk from 'chalk'
 import { Argv } from 'yargs'
 
 import { log } from '../logging'
 import { populateEntry } from '../dispute'
 import { getDisputes, getNetworkSettings } from '../model'
+import { treeifyFormat } from '../utils'
 
 export const listCommand = {
   command: 'list',
@@ -59,13 +60,12 @@ export const listCommand = {
     const orderedDisputeIds = Object.keys(data).sort((d1, d2) =>
       findDisputeById(d1).createdAt > findDisputeById(d2).createdAt ? 1 : -1,
     )
-    const sortedData = {}
-    orderedDisputeIds.forEach(disputeId => {
-      sortedData[chalk.whiteBright.underline(disputeId)] = data[disputeId]
-    })
     // Display disputes
-    log.info('Disputes')
-    log.info('--------')
-    log.info(treeify.asTree(sortedData, true, true))
+    log.info(chalk.bold('Disputes'))
+    log.info(chalk.gray('--------'))
+    orderedDisputeIds.forEach(disputeId => {
+      log.info(`${chalk.bold('Dispute')} (${chalk.cyanBright(disputeId)})`)
+      log.info(treeify(data[disputeId], treeifyFormat))
+    })
   },
 }
