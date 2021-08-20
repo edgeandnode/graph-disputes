@@ -39,7 +39,7 @@ function styleClosedAtEpoch(
   if (isDisputeOlderThanTwoThawingPeriods(closedAtEpoch, networkSettings)) {
     return chalk.redBright(closedAtEpoch)
   }
-  return closedAtEpoch
+  return chalk.cyanBright(closedAtEpoch)
 }
 
 const DAY_SECONDS = 60 * 60 * 24
@@ -103,37 +103,42 @@ export const populateEntry = async (
 
   // Assemble dispute data
   const disputeEntry = {
-    Type: styleType(dispute.type),
-    Status: `${styleDisputeStatus(dispute.status)} (${lastActionAgo} days ago)`,
-    Indexer: chalk.cyanBright(
-      indexerName
-        ? `${indexerName} (${dispute.indexer.id})`
-        : dispute.indexer.id,
-    ),
-    Fisherman: chalk.cyanBright(
+    [chalk.bold('Type')]: styleType(dispute.type),
+    [chalk.bold('Status')]: `${styleDisputeStatus(
+      dispute.status,
+    )} (${lastActionAgo} days ago)`,
+    [chalk.bold('Indexer')]: indexerName
+      ? `${chalk.bold.cyanBright(indexerName)} ` +
+        chalk.gray(`(${dispute.indexer.id})`)
+      : chalk.cyanBright(dispute.indexer.id),
+    [chalk.bold('Fisherman')]: chalk.cyanBright(
       fishermanName
         ? `${fishermanName} (${dispute.fisherman.id})`
         : dispute.fisherman.id,
     ),
-    SubgraphDeployment: {
-      id: `${subgraphDeployment.bytes32} (${subgraphDeployment.ipfsHash})`,
+    [chalk.bold('SubgraphDeployment')]: {
+      id:
+        chalk.cyanBright(`${subgraphDeployment.bytes32} `) +
+        chalk.gray(`(${subgraphDeployment.ipfsHash})`),
     },
-    Economics: {
+    [chalk.bold('Economics')]: {
       indexerSlashableStake: chalk.greenBright(`${slashableStake} GRT`),
       indexingRewardsCollected: chalk.greenBright(`${indexingRewards} GRT`),
     },
-    Allocation: {
+    [chalk.bold('Allocation')]: {
       id: chalk.cyanBright(dispute.allocation.id),
-      createdAtEpoch: dispute.allocation.createdAtEpoch,
-      createdAtBlock: dispute.allocation.createdAtBlockHash,
+      createdAtEpoch: chalk.cyanBright(dispute.allocation.createdAtEpoch),
+      createdAtBlock: chalk.cyanBright(dispute.allocation.createdAtBlockHash),
       closedAtEpoch: styleClosedAtEpoch(
         dispute.allocation.closedAtEpoch,
         networkSettings,
       ),
-      closedAtBlock: `${dispute.allocation.closedAtBlockHash} (#${dispute.allocation.closedAtBlockNumber})`,
+      closedAtBlock:
+        chalk.cyanBright(`${dispute.allocation.closedAtBlockHash} `) +
+        chalk.gray(`(#${dispute.allocation.closedAtBlockNumber})`),
     },
-    POI: {
-      submitted: dispute.allocation.poi,
+    [chalk.bold('POI')]: {
+      submitted: chalk.cyanBright(dispute.allocation.poi),
       match: hasProof
         ? styleBoolean(
             lastPoi.proof === dispute.allocation.poi ||
