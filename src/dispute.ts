@@ -5,6 +5,7 @@ import { BigNumber } from 'ethers'
 import { getEpoch, Dispute, GraphNetwork } from './model'
 import { Environment } from './env'
 import { toGRT } from './utils'
+import { EthereumBlock } from './poi'
 
 function styleBoolean(value: boolean) {
   return value ? chalk.greenBright(value) : chalk.redBright(value)
@@ -37,7 +38,9 @@ function styleClosedAtEpoch(
   networkSettings: GraphNetwork,
 ) {
   if (isDisputeOlderThanTwoThawingPeriods(closedAtEpoch, networkSettings)) {
-    return chalk.redBright(closedAtEpoch)
+    return (
+      chalk.redBright(closedAtEpoch) + chalk.gray(` (${'dispute is too old'})`)
+    )
   }
   return chalk.cyanBright(closedAtEpoch)
 }
@@ -77,7 +80,7 @@ export const populateEntry = async (
   ])
 
   // Reference POI
-  const [lastBlock, prevBlock] = await Promise.all([
+  const [lastBlock, prevBlock]: EthereumBlock[] = await Promise.all([
     provider.getBlock(lastEpoch.startBlock),
     provider.getBlock(prevEpoch.startBlock),
   ])
@@ -118,8 +121,8 @@ export const populateEntry = async (
     ),
     [chalk.bold('SubgraphDeployment')]: {
       id:
-        chalk.cyanBright(`${subgraphDeployment.bytes32} `) +
-        chalk.gray(`(${subgraphDeployment.ipfsHash})`),
+        chalk.cyanBright(subgraphDeployment.bytes32) +
+        chalk.gray(` (${subgraphDeployment.ipfsHash})`),
     },
     [chalk.bold('Economics')]: {
       indexerSlashableStake: chalk.greenBright(`${slashableStake} GRT`),
@@ -129,13 +132,18 @@ export const populateEntry = async (
       id: chalk.cyanBright(dispute.allocation.id),
       createdAtEpoch: chalk.cyanBright(dispute.allocation.createdAtEpoch),
       createdAtBlock: chalk.cyanBright(dispute.allocation.createdAtBlockHash),
-      closedAtEpoch: styleClosedAtEpoch(
-        dispute.allocation.closedAtEpoch,
-        networkSettings,
-      ),
+      closedAtEpoch: {
+        id: styleClosedAtEpoch(
+          dispute.allocation.closedAtEpoch,
+          networkSettings,
+        ),
+        startBlock:
+          chalk.cyanBright(lastBlock.hash) +
+          chalk.gray(` (#${lastBlock.number})`),
+      },
       closedAtBlock:
-        chalk.cyanBright(`${dispute.allocation.closedAtBlockHash} `) +
-        chalk.gray(`(#${dispute.allocation.closedAtBlockNumber})`),
+        chalk.cyanBright(dispute.allocation.closedAtBlockHash) +
+        chalk.gray(` (#${dispute.allocation.closedAtBlockNumber})`),
     },
     [chalk.bold('POI')]: {
       submitted: chalk.cyanBright(dispute.allocation.poi),
@@ -145,6 +153,12 @@ export const populateEntry = async (
               prevPoi.proof === dispute.allocation.poi,
           )
         : chalk.redBright('Not-Found'),
+      previousEpochPOI: hasProof
+        ? chalk.cyanBright(prevPoi.proof)
+        : chalk.gray('Not-Found'),
+      lastEpochPOI: hasProof
+        ? chalk.cyanBright(lastPoi.proof)
+        : chalk.gray('Not-Found'),
     },
   }
 
