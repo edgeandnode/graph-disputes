@@ -1,5 +1,5 @@
 import { providers } from 'ethers'
-import treeify from 'treeify'
+import treeify from 'object-treeify'
 import ora from 'ora'
 import chalk from 'chalk'
 import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManager'
@@ -9,7 +9,7 @@ import { populateEntry, isDisputeOlderThanTwoThawingPeriods } from './dispute'
 import { Environment } from './env'
 import { getDispute, getNetworkSettings } from './model'
 import { waitTransaction } from './network'
-import { askConfirm } from './utils'
+import { askConfirm, treeifyFormat } from './utils'
 
 enum DisputeResolution {
   Accept = 1,
@@ -75,7 +75,7 @@ export class DisputeResolver {
     )
     spinner.stop()
 
-    log.info(treeify.asTree(disputeEntry, true, true))
+    log.info(treeify(disputeEntry, treeifyFormat))
 
     // TODO: show how much the indexer will be slashed
     // TODO: show the bond the submitter will get
