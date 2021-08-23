@@ -1,9 +1,20 @@
 # Python service for automating disputes.
 
+
+
+Requirements:
+0. Programmatic access to Gcloud Storage (via loading of credentials in json file)
+1. Postgres resource available to connect
+2. Must be able to make external requests to The Graph network api (used for validation and identifying indexers tied to a dispute)
+3. Access to a metrics server for monitoring. 
+4. (FUTURE) access to serices for running predictive analytics. 
+
+
+
 Steps to run locally:
 ---
  
-0. Setup the database:
+1. Setup the database:
  
  >  `createdb dispute_service` \
    `create user dispute_arbitrator`\
@@ -35,3 +46,5 @@ Building migrations
 >`poetry install`\
 `poetry run alembic revision --autogenerate -m '{COMMENT}'`\
 `poetry run alembic upgrade head`
+
+
