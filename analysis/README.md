@@ -20,15 +20,15 @@ pip install itables
 ```   
 
 There are some recommended but optional Jupyter extensions. To install:
-    ```
-    jupyter contrib nbextension install --user
-    jupyter nbextension enable hide_input/main
-    jupyter nbextension enable hide_input_all/main 
-    jupyter nbextension enable execute_time/ExecuteTime 
-    jupyter nbextension enable collapsible_headings/main 
-    jupyter nbextension enable splitcell/splitcell 
-    jupyter nbextension enable toc2/main
-    ```
+```
+jupyter contrib nbextension install --user
+jupyter nbextension enable hide_input/main
+jupyter nbextension enable hide_input_all/main 
+jupyter nbextension enable execute_time/ExecuteTime 
+jupyter nbextension enable collapsible_headings/main 
+jupyter nbextension enable splitcell/splitcell 
+jupyter nbextension enable toc2/main
+```
 
 ### Setup
 
