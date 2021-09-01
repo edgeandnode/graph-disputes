@@ -15,7 +15,7 @@ from .w3 import (
     get_subgraph_data_sources,
     get_subgraph_manifest,
 )
-from analysis.calculate_divergent_block import calculate_divergent_blocks
+from ..analysis.calculate_divergent_block import calculate_divergent_blocks
 
 logger = logging.getLogger(__name__)
 

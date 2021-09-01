@@ -2,12 +2,10 @@ from sqlalchemy.engine.url import URL, make_url
 from starlette.config import Config
 from starlette.datastructures import Secret
 
-# import ipdb
 from pathlib import Path
 
 enviornment_path = Path.joinpath(Path(__file__).parent, ".env")
 config = Config(enviornment_path)
-
 
 DB_DRIVER = config("DB_DRIVER", default="postgresql")
 DB_HOST = config("DB_HOST", default="127.0.0.1")
