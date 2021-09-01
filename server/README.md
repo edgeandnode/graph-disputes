@@ -3,11 +3,14 @@
 
 
 Requirements:
-0. Programmatic access to Gcloud Storage (via loading of credentials in json file)
-1. Postgres resource available to connect
+
+0. Programmatic access to Gcloud Storage (via loading of credentials in json file):
+   > l21:main.py: `os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(
+    Path(__file__).parent.joinpath("service-key.json")
+)`
+1. Postgres resource available to connect (code in `config.py`)
 2. Must be able to make external requests to The Graph network api (used for validation and identifying indexers tied to a dispute)
-3. Access to a metrics server for monitoring. 
-4. (FUTURE) access to serices for running predictive analytics. 
+3. (FUTURE) access to serices for running predictive analytics and metrics monitoring. 
 
 
 
