@@ -3,6 +3,8 @@ on:
   push:
     paths:
     - 'server/**'
+    - 'k8s/**'
+    - '.github/**'
 env:
   BASE_IMAGE: ghcr.io/graph-disputes-server
   APP_NAME: graph-disputes-server
