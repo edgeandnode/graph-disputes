@@ -11,9 +11,9 @@ export interface Epoch {
 export interface Allocation {
   id: string
   createdAtEpoch: number
-  createdAtBlockHash: number
+  createdAtBlockHash: string
   closedAtEpoch: number
-  closedAtBlockHash: number
+  closedAtBlockHash: string
   closedAtBlockNumber: number
   poi: string
   indexer?: Indexer

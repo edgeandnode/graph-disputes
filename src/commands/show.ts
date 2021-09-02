@@ -8,7 +8,7 @@ import { Argv } from 'yargs'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
 import { log } from '../logging'
-import { populateEntry } from '../dispute'
+import { formatEntry, populateEntry } from '../dispute'
 import { getDispute, getNetworkSettings } from '../model'
 import { Poi } from '../poi'
 import { Environment } from '../env'
@@ -50,7 +50,9 @@ export const showCommand = {
       )
       log.info(`${chalk.bold('Dispute:')} ${chalk.cyanBright(disputeID)}`)
       log.info(chalk.gray('-------'))
-      log.info(treeify({ ...disputeEntry }, treeifyFormat))
+      log.info(
+        treeify(formatEntry(disputeEntry, networkSettings), treeifyFormat),
+      )
       spinner.stop()
 
       // Try to find the presented Poi comparing with all the blocks

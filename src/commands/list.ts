@@ -5,7 +5,7 @@ import chalk from 'chalk'
 import { Argv } from 'yargs'
 
 import { log } from '../logging'
-import { populateEntry } from '../dispute'
+import { formatEntry, populateEntry } from '../dispute'
 import { getDisputes, getNetworkSettings } from '../model'
 import { treeifyFormat } from '../utils'
 
@@ -65,7 +65,9 @@ export const listCommand = {
     log.info(chalk.gray('--------'))
     orderedDisputeIds.forEach(disputeId => {
       log.info(`${chalk.bold('Dispute')} (${chalk.cyanBright(disputeId)})`)
-      log.info(treeify(data[disputeId], treeifyFormat))
+      log.info(
+        treeify(formatEntry(data[disputeId], networkSettings), treeifyFormat),
+      )
     })
   },
 }
