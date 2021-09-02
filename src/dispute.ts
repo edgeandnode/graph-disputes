@@ -7,6 +7,54 @@ import { Environment } from './env'
 import { toGRT } from './utils'
 import { EthereumBlock } from './poi'
 
+export type DisputeEntry = {
+  Type: string
+  Status: {
+    status: string
+    lastActionAgo: string
+  }
+  Indexer: {
+    name: string
+    id: string
+  }
+  Fisherman: {
+    name: string
+    id: string
+  }
+  SubgraphDeployment: {
+    id: {
+      bytes32: string
+      ipfsHash: string
+    }
+  }
+  Economics: {
+    indexerSlashableStake: string
+    indexingRewardsCollected: string
+  }
+  Allocation: {
+    id: string
+    createdAtEpoch: number
+    createdAtBlock: string
+    closedAtEpoch: {
+      id: number
+      startBlock: {
+        hash: string
+        number: number
+      }
+    }
+    closedAtBlock: {
+      hash: string
+      number: number
+    }
+  }
+  POI: {
+    submitted: string
+    match: boolean | string
+    previousEpochPOI: boolean | string
+    lastEpochPOI: string
+  }
+}
+
 function styleBoolean(value: boolean) {
   return value ? chalk.greenBright(value) : chalk.redBright(value)
 }
@@ -21,16 +69,16 @@ function styleType(value: string) {
   return value
 }
 
-function styleDisputeStatus(status: string) {
-  switch (status) {
+function styleDisputeStatus(status: DisputeEntry['Status']) {
+  switch (status.status) {
     case 'Accepted':
-      return chalk.greenBright(status)
+      return chalk.greenBright(status.status)
     case 'Rejected':
-      return chalk.redBright(status)
+      return chalk.redBright(status.status)
     case 'Draw':
-      return chalk.yellowBright(status)
+      return chalk.yellowBright(status.status)
   }
-  return chalk.dim(status)
+  return chalk.dim(status.status)
 }
 
 function styleClosedAtEpoch(
@@ -105,60 +153,54 @@ export const populateEntry = async (
   const fishermanName = dispute.fisherman.defaultDisplayName
 
   // Assemble dispute data
-  const disputeEntry = {
-    [chalk.bold('Type')]: styleType(dispute.type),
-    [chalk.bold('Status')]: `${styleDisputeStatus(
-      dispute.status,
-    )} (${lastActionAgo} days ago)`,
-    [chalk.bold('Indexer')]: indexerName
-      ? `${chalk.bold.cyanBright(indexerName)} ` +
-        chalk.gray(`(${dispute.indexer.id})`)
-      : chalk.cyanBright(dispute.indexer.id),
-    [chalk.bold('Fisherman')]: chalk.cyanBright(
-      fishermanName
-        ? `${fishermanName} (${dispute.fisherman.id})`
-        : dispute.fisherman.id,
-    ),
-    [chalk.bold('SubgraphDeployment')]: {
-      id:
-        chalk.cyanBright(subgraphDeployment.bytes32) +
-        chalk.gray(` (${subgraphDeployment.ipfsHash})`),
+  const disputeEntry: DisputeEntry = {
+    Type: dispute.type,
+    Status: {
+      status: dispute.status,
+      lastActionAgo,
     },
-    [chalk.bold('Economics')]: {
-      indexerSlashableStake: chalk.greenBright(`${slashableStake} GRT`),
-      indexingRewardsCollected: chalk.greenBright(`${indexingRewards} GRT`),
+    Indexer: {
+      name: indexerName,
+      id: dispute.indexer.id,
     },
-    [chalk.bold('Allocation')]: {
-      id: chalk.cyanBright(dispute.allocation.id),
-      createdAtEpoch: chalk.cyanBright(dispute.allocation.createdAtEpoch),
-      createdAtBlock: chalk.cyanBright(dispute.allocation.createdAtBlockHash),
-      closedAtEpoch: {
-        id: styleClosedAtEpoch(
-          dispute.allocation.closedAtEpoch,
-          networkSettings,
-        ),
-        startBlock:
-          chalk.cyanBright(lastBlock.hash) +
-          chalk.gray(` (#${lastBlock.number})`),
+    Fisherman: {
+      name: fishermanName,
+      id: dispute.fisherman.id,
+    },
+    SubgraphDeployment: {
+      id: {
+        bytes32: subgraphDeployment.bytes32,
+        ipfsHash: subgraphDeployment.ipfsHash,
       },
-      closedAtBlock:
-        chalk.cyanBright(dispute.allocation.closedAtBlockHash) +
-        chalk.gray(` (#${dispute.allocation.closedAtBlockNumber})`),
     },
-    [chalk.bold('POI')]: {
-      submitted: chalk.cyanBright(dispute.allocation.poi),
+    Economics: {
+      indexerSlashableStake: slashableStake,
+      indexingRewardsCollected: indexingRewards,
+    },
+    Allocation: {
+      id: dispute.allocation.id,
+      createdAtEpoch: dispute.allocation.createdAtEpoch,
+      createdAtBlock: dispute.allocation.createdAtBlockHash,
+      closedAtEpoch: {
+        id: dispute.allocation.closedAtEpoch,
+        startBlock: {
+          hash: lastBlock.hash,
+          number: lastBlock.number,
+        },
+      },
+      closedAtBlock: {
+        hash: dispute.allocation.closedAtBlockHash,
+        number: dispute.allocation.closedAtBlockNumber,
+      },
+    },
+    POI: {
+      submitted: dispute.allocation.poi,
       match: hasProof
-        ? styleBoolean(
-            lastPoi.proof === dispute.allocation.poi ||
-              prevPoi.proof === dispute.allocation.poi,
-          )
-        : chalk.redBright('Not-Found'),
-      previousEpochPOI: hasProof
-        ? chalk.cyanBright(prevPoi.proof)
-        : chalk.gray('Not-Found'),
-      lastEpochPOI: hasProof
-        ? chalk.cyanBright(lastPoi.proof)
-        : chalk.gray('Not-Found'),
+        ? lastPoi.proof === dispute.allocation.poi ||
+          prevPoi.proof === dispute.allocation.poi
+        : 'Not-Found',
+      previousEpochPOI: hasProof ? prevPoi.proof : 'Not-Found',
+      lastEpochPOI: hasProof ? lastPoi.proof : 'Not-Found',
     },
   }
 
@@ -181,18 +223,74 @@ export const populateEntry = async (
         },
       }
     }
-
-    // Rewards
-    // const disputeManager = contracts.disputeManager
-    // const [slashedAmount, rewardsAmount] = await Promise.all([
-    //   disputeManager.getTokensToSlash(dispute.indexer.id),
-    //   disputeManager.getTokensToReward(dispute.indexer.id),
-    // ])
-    // disputeEntry['Rewards'] = {
-    //   slashAmount: formatGRT(slashedAmount),
-    //   rewardsAmount: formatGRT(rewardsAmount),
-    // }
   }
 
   return disputeEntry
+}
+
+export const formatEntry = (
+  entry: DisputeEntry,
+  networkSettings: GraphNetwork,
+): Record<string, any> => {
+  const formattedEntry = {
+    [chalk.bold('Type')]: styleType(entry.Type),
+    [chalk.bold('Status')]: `${styleDisputeStatus(entry.Status)} (${
+      entry.Status.lastActionAgo
+    } days ago)`,
+    [chalk.bold('Indexer')]: entry.Indexer.name
+      ? `${chalk.bold.cyanBright(entry.Indexer.name)} ` +
+        chalk.gray(`(${entry.Indexer.id})`)
+      : chalk.cyanBright(entry.Indexer.id),
+    [chalk.bold('Fisherman')]: chalk.cyanBright(
+      entry.Fisherman.name
+        ? `${entry.Fisherman.name} (${entry.Fisherman.id})`
+        : entry.Fisherman.id,
+    ),
+    [chalk.bold('SubgraphDeployment')]: {
+      id:
+        chalk.cyanBright(entry.SubgraphDeployment.id.bytes32) +
+        chalk.gray(` (${entry.SubgraphDeployment.id.ipfsHash})`),
+    },
+    [chalk.bold('Economics')]: {
+      indexerSlashableStake: chalk.greenBright(
+        `${entry.Economics.indexerSlashableStake} GRT`,
+      ),
+      indexingRewardsCollected: chalk.greenBright(
+        `${entry.Economics.indexingRewardsCollected} GRT`,
+      ),
+    },
+    [chalk.bold('Allocation')]: {
+      id: chalk.cyanBright(entry.Allocation.id),
+      createdAtEpoch: chalk.cyanBright(entry.Allocation.createdAtEpoch),
+      createdAtBlock: chalk.cyanBright(entry.Allocation.createdAtBlock),
+      closedAtEpoch: {
+        id: styleClosedAtEpoch(
+          entry.Allocation.closedAtEpoch.id,
+          networkSettings,
+        ),
+        startBlock:
+          chalk.cyanBright(entry.Allocation.closedAtEpoch.startBlock.hash) +
+          chalk.gray(` (#${entry.Allocation.closedAtEpoch.startBlock.number})`),
+      },
+      closedAtBlock:
+        chalk.cyanBright(entry.Allocation.closedAtBlock.hash) +
+        chalk.gray(` (#${entry.Allocation.closedAtBlock.number})`),
+    },
+    [chalk.bold('POI')]: {
+      submitted: chalk.cyanBright(entry.POI.submitted),
+      match:
+        entry.POI.match === 'Not-Found'
+          ? chalk.redBright(entry.POI.match)
+          : styleBoolean(entry.POI.match as boolean),
+      previousEpochPOI:
+        entry.POI.match === 'Not-Found'
+          ? chalk.gray('Not-Found')
+          : chalk.cyanBright(entry.POI.previousEpochPOI),
+      lastEpochPOI:
+        entry.POI.match === 'Not-Found'
+          ? chalk.gray('Not-Found')
+          : chalk.cyanBright(entry.POI.lastEpochPOI),
+    },
+  }
+  return formattedEntry
 }
