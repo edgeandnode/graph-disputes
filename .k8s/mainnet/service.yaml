@@ -3,10 +3,12 @@ kind: Service
 metadata:
   labels:
     app: graph-disputes-server
-  name: graph-disputes-server-ext
+  name: graph-disputes-svc
 spec:
   type: LoadBalancer
   ports:
-    - port: 8000
+    - protocol: "TCP"
+      port: 8080
+      targetPort: 8080
   selector:
     app: graph-disputes-server
