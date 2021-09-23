@@ -1,5 +1,3 @@
-from numpy.lib.function_base import disp
-from api.models.disputes import Dispute
 import logging
 from typing import List, Dict, Optional, Any
 from fastapi import APIRouter
@@ -11,7 +9,6 @@ from starlette.requests import Request
 
 from ..models.divergent_blocks import DivergentBlocks
 from ..dispute.fsm import DisputeResolver, create_resolver
-from api.models import divergent_blocks
 
 
 logger = logging.getLogger(__name__)

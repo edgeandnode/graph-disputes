@@ -17,7 +17,7 @@ spec:
         - name: docker-registry
       containers:
         - name: app
-          image: ghcr.io/graph-disputes-server
+          image: graph-disputes-server
           env:
             - name: DB_HOST
               valueFrom:

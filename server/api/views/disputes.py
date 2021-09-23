@@ -12,7 +12,6 @@ from ..models.indexer import Indexer
 from ..models.indexer_uploads import DataKindEnum, IndexerUploads
 
 
-from ..dispute.fsm import DisputeResolver
 from ..graphql import *
 
 

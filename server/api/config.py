@@ -7,6 +7,7 @@ from pathlib import Path
 
 FASTAPI_DEPLOYMENT = os.getenv("FASTAPI_DEPLOYMENT")
 
+### NOT USED ON
 if FASTAPI_DEPLOYMENT == "production":
     environment_path = Path.joinpath(Path(__file__).parent, ".env.prod")
 elif FASTAPI_DEPLOYMENT == "dev":
@@ -15,6 +16,11 @@ else:
     environment_path = ""
 
 config = Config(environment_path)
+
+print("HOST")
+print(config("DB_HOST"))
+print("PORT")
+print(config("DB_PORT"))
 
 
 DB_DRIVER = config("DB_DRIVER", default="postgresql")

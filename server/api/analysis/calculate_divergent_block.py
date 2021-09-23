@@ -6,7 +6,6 @@ from functools import reduce
 from psycopg2.extras import NumericRange
 from tensorflow.python.lib.io import file_io
 
-import ipdb
 
 def read_csv_file(filename):
     """

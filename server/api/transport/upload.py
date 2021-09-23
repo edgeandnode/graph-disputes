@@ -1,12 +1,12 @@
 import logging
 from typing import Optional
-import ipdb
 from pydantic import BaseModel
 from starlette.requests import Request
 from fastapi import APIRouter, File, UploadFile, HTTPException
 
 from ..dispute.fsm import create_resolver
 from ..models.disputes import DisputeStage
+
 router = APIRouter()
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,9 @@ async def upload_poi_to_gcloud(request: Request, file: UploadFile = File(...)):
 
     if stage != DisputeStage.waiting_for_poi:
         logger.info("Not waiting for poi")
-        raise HTTPException(status_code=404, detail="This dispute is no longer accepting POI")
+        raise HTTPException(
+            status_code=404, detail="This dispute is no longer accepting POI"
+        )
 
     logger.info(
         "Uploading file {} for indexer {} for dispute {}".format(
@@ -98,6 +100,7 @@ async def upload_metadata_to_gcloud(request: Request, file: UploadFile = File(..
         raise HTTPException(status_code=500, detail="{}".format(e))
 
     return IndexerUploadResponse(upload_path=result)
+
 
 def init_app(app):
     app.include_router(router)

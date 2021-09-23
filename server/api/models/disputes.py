@@ -1,6 +1,5 @@
 import enum
 import datetime
-from fastapi import HTTPException
 from sqlalchemy import *
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, insert
 

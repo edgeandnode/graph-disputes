@@ -1,15 +1,14 @@
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSONB, insert
+from sqlalchemy.dialects.postgresql import insert
 
 from . import db
 
 
 class Indexer(db.Model):
     __tablename__ = "indexer"
-    id = db.Column(db.BigInteger(),nullable=True)
+    id = db.Column(db.BigInteger(), nullable=True)
     indexer_id = db.Column(
-        db.String(),
-        primary_key=True
+        db.String(), primary_key=True
     )  # Won't make primary key so can keep updated records
     name = db.Column(db.Unicode(), default="unnamed")
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)

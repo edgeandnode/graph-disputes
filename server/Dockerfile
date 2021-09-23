@@ -40,8 +40,9 @@ FROM python-base as final
 
 COPY --from=builder /venv /venv
 COPY docker-entrypoint.sh ./
-RUN ["chmod", "+x", "docker-entrypoint.sh"]
+RUN chmod +x ./docker-entrypoint.sh
 
 EXPOSE 5432
 EXPOSE 8000
-CMD ["./docker-entrypoint.sh"]
+CMD . /venv/bin/activate && uvicorn api.asgi:app --host 0.0.0.0 --port 8000
+# ENTRYPOINT ["./docker-entrypoint.sh"]

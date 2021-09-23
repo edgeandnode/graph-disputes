@@ -11,7 +11,6 @@ from typing import Any
 from eth_typing import URI
 
 from web3 import Web3
-from web3.types import RPCEndpoint, RPCResponse
 
 
 # Inline this. can't shade versions of sqlalchemy

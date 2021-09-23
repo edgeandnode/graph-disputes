@@ -9,7 +9,7 @@ from starlette.middleware import Middleware
 from starlette.requests import Request
 
 
-from starlette_context import context, plugins
+from starlette_context import plugins
 from starlette_context.middleware import ContextMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -68,7 +68,6 @@ def get_app():
         )
         start_time = time.time()
 
-        # ipdb.set_trace()
         response = await call_next(request)
 
         process_time = (time.time() - start_time) * 1000
