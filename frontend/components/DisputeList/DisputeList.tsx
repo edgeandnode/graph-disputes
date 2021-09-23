@@ -32,39 +32,3 @@ export const DisputeList: React.FC<DisputeListProps> = ({
     />
   );
 };
-
-// export const DisputeList: React.FC<DisputeListProps> = ({
-//   disputes,
-//   onDisputeRemoval,
-// }) => {
-//   const numEachPage = 4;
-
-//   const [minVal, setMinVal] = React.useState(0);
-//   const [maxVal, setMaxVal] = React.useState(1);
-
-//   const handleChange = value => {
-//     setMinVal((value - 1) * numEachPage);
-//     setMaxVal(value * numEachPage);
-//   };
-
-//   return (
-//     <div>
-//       {disputes &&
-//         disputes.length > 0 &&
-//         disputes.slice(minVal, maxVal).map(dispute => (
-//           <Card>
-//             <DisputeItem
-//               dispute={dispute}
-//               onDisputeRemoval={onDisputeRemoval}
-//             />
-//           </Card>
-//         ))}
-//       <Pagination
-//         defaultCurrent={2}
-//         defaultPageSize={numEachPage} //default size of page
-//         onChange={handleChange}
-//         total={3} //total number of card data available
-//       />
-//     </div>
-//   );
-// };
