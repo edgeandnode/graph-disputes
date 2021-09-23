@@ -7,6 +7,6 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: 80
+    - port: 8000
   selector:
     app: graph-disputes-server
