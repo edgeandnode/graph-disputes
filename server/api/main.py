@@ -20,11 +20,14 @@ from os import path
 
 origins = ["*"]
 
-
+deployment = os.environ["DEPLOYMENT"]
 # Make this available to the gcloud sdk
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(
-    Path(__file__).parent.joinpath("service-key.json")
-)
+if deployment == "LOCAL":
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(
+        Path(__file__).parent.joinpath("service-key.json")
+    )
+if deployment == "CLOUD":
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/app/service-key.json"
 
 log_file_path = path.join(path.dirname(path.abspath(__file__)), "logging.conf")
 logging.config.fileConfig(

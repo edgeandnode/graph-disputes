@@ -19,6 +19,8 @@ spec:
         - name: app
           image: graph-disputes-server
           env:
+            - name: DEPLOYMENT
+              value: "CLOUD"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:

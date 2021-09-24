@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: graph-disputes-server
-  name: graph-disputes-svc
+  name: graph-disputes-server
 spec:
   type: LoadBalancer
   ports:
