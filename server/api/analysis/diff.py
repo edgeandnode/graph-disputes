@@ -11,23 +11,39 @@ import pandas as pd
 
 """
 
+
 def get_indexer_from_path(path) -> str:
     return "indexer"
 
-def read_zipped(path) -> Dict[str,pd.DataFrame]:
+
+def read_zipped(path) -> Dict[str, pd.DataFrame]:
     """
     Takes a zip directory of an indexer and maps it to all of the underlying dataframes
 
     file_name --> DataFrame
     """
-    zf =  ZipFile(path)
-    dfs = {text_file.filename.split('/')[-1]: pd.read_csv(zf.open(text_file.filename),sep='\t')for text_file \
-        in zf.infolist() if text_file.filename.endswith('.tsv')}
+    zf = ZipFile(path)
+    dfs = {
+        text_file.filename.split("/")[-1]: pd.read_csv(
+            zf.open(text_file.filename), sep="\t"
+        )
+        for text_file in zf.infolist()
+        if text_file.filename.endswith(".tsv")
+    }
     indexer = get_indexer_from_path(path)
 
-    indexer_df = {'indexer':indexer, 'tables': dfs}
+    indexer_df = {"indexer": indexer, "tables": dfs}
     return indexer_df
 
 
-def aggregate_dataframes(dataframe_maps: List[Dict[str,pd.DataFrame]]) -> List[List[pd.DataFrame]]:
+def aggregate_dataframes(
+    dataframe_maps: List[Dict[str, pd.DataFrame]]
+) -> List[List[pd.DataFrame]]:
+    pass
+
+
+def diff(dataframes):
+    """
+    IF we can use the vid as a means of indexing, that is fine.
+    """
     pass

@@ -11,7 +11,7 @@ export interface Indexers {
 export interface Dispute {
   id?: number;
   dispute_id: string;
-  indexer_ids: string[];
+  indexer_ids?: string[];
   indexers?: Indexers[];
   dispute_stage: number;
   subgraph_id: string;

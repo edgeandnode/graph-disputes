@@ -28,7 +28,8 @@ const columns = [
     title: 'Indexer ID',
     dataIndex: 'indexer_id',
     key: 'indexer_id',
-    defaultSortOrder: 'descend',
+    // eslint-disable-next-line @typescript-eslint/prefer-as-const
+    defaultSortOrder: 'descend' as 'descend',
     sorter: (a, b) => a.indexer_id.localeCompare(b.indexer_id),
   },
 
@@ -126,6 +127,7 @@ const mapDisputeDataToObjectArray = (data: Dispute): any[] => {
       ),
       uploaded: (indexer.indexer_uploads ?? []).length > 0 ? 'True' : 'False',
     };
+    console.log(ri);
     indexerRowItems.push(ri);
   });
 
@@ -144,12 +146,11 @@ export const IndexerTable: React.FC<IndexerTableProps> = ({ disputeData }) => {
       columns={columns}
       expandable={{
         expandedRowRender: record => (
-          <div style={{ margin: 0 }}>{record.indexerUploads ?? []}</div>
+          <p style={{ margin: 0 }}>{record.indexerUploads ?? []}</p>
         ),
         rowExpandable: record => record.indexerUploads !== null,
       }}
       dataSource={mappedData}
-      pagination={{ pageSize: 5 }}
     />
   );
 };
