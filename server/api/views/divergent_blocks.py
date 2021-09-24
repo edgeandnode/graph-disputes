@@ -1,6 +1,6 @@
 import logging
 from typing import List, Dict, Optional, Any
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from fastapi import HTTPException
 from sqlalchemy import and_, or_
@@ -150,20 +150,23 @@ async def generate_divergent_blocks(dispute_id: str, request: Request):
 
     try:
         matching_events = await dsp.generate_matching_events()
+        matching_events_model = [
+            MatchingEvents(**x) for x in matching_events.to_dict(orient="records")
+        ]
+
+        pre_entity_response = PreEntityUploadResponse(
+            dispute_id=dispute_id,
+            divergent_blocks=generated_blocks,
+            matching_events=matching_events_model,
+        )
+
+        return pre_entity_response
+
     except Exception as e:
         logger.error("Couldn't load the matching events. Recalculate?. {}".format(e))
-
-    matching_events_model = [
-        MatchingEvents(**x) for x in matching_events.to_dict(orient="records")
-    ]
-
-    pre_entity_response = PreEntityUploadResponse(
-        dispute_id=dispute_id,
-        divergent_blocks=generated_blocks,
-        matching_events=matching_events_model,
-    )
-
-    return pre_entity_response
+        raise HTTPException(
+            status_code=500, detail="Can't generate the matching events"
+        )
 
 
 def init_app(app):
