@@ -4,6 +4,7 @@ import treeify from 'object-treeify'
 import chalk from 'chalk'
 import { Argv } from 'yargs'
 
+import { addDefaultArgOptions } from '../config'
 import { log } from '../logging'
 import { formatEntry, populateEntry } from '../dispute'
 import { getDisputes, getNetworkSettings } from '../model'
@@ -13,15 +14,17 @@ export const listCommand = {
   command: 'list',
   describe: 'List disputes',
   builder: (yargs: Argv): Argv => {
-    return yargs
-      .usage('$0 [--status <accepted|rejected|draw|undecided|all>]')
-      .option('status', {
-        description: 'Dispute status',
-        group: 'List',
-        type: 'string',
-        choices: ['accepted', 'rejected', 'draw', 'undecided', 'all'],
-        default: 'undecided',
-      })
+    return addDefaultArgOptions(
+      yargs
+        .usage('$0 [--status <accepted|rejected|draw|undecided|all>]')
+        .option('status', {
+          description: 'Dispute status',
+          group: 'List',
+          type: 'string',
+          choices: ['accepted', 'rejected', 'draw', 'undecided', 'all'],
+          default: 'undecided',
+        }),
+    )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],

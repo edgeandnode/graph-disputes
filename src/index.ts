@@ -23,43 +23,16 @@ yargs.middleware(async argv => {
 yargs
   .scriptName('graph-disputes')
   .env('GRAPH_DISPUTES')
+  .default('config', DEFAULT_CONFIG_NAME)
   .config('config', function (configName) {
     const configPath = findUp.sync(basename(configName))
-    return configPath ? JSON.parse(fs.readFileSync(configPath, 'utf-8')) : {}
+    try {
+      return configPath ? JSON.parse(fs.readFileSync(configPath, 'utf-8')) : {}
+    } catch (e) {
+      return {}
+    }
   })
-  .default('config', DEFAULT_CONFIG_NAME)
   .command(setupCommand)
-  .option('ethereum', {
-    description: 'Ethereum node or provider URL',
-    type: 'string',
-    required: true,
-    group: 'Ethereum',
-  })
-  .option('ethereum-network', {
-    description: 'Ethereum network',
-    type: 'string',
-    required: false,
-    default: 'mainnet',
-    group: 'Ethereum',
-  })
-  .option('network-subgraph-endpoint', {
-    description: 'Endpoint to query the network subgraph from',
-    type: 'string',
-    required: true,
-    group: 'Network Subgraph',
-  })
-  .option('trusted-subgraph-endpoint', {
-    description: 'Endpoint to query the trusted indexing proofs',
-    type: 'string',
-    required: true,
-    group: 'Trusted Subgraph',
-  })
-  .option('log-level', {
-    description: 'Log level',
-    type: 'string',
-    default: 'debug',
-    group: 'Logging',
-  })
   .command(createCommand)
   .command(listCommand)
   .command(showCommand)

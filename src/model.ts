@@ -65,7 +65,7 @@ export const getEpoch = async (
   const result = await networkSubgraph
     .query(
       gql`
-        query($epochID: Int!) {
+        query ($epochID: Int!) {
           epoch(id: $epochID) {
             id
             startBlock
@@ -85,7 +85,7 @@ export const getAllocation = async (
   const result = await networkSubgraph
     .query(
       gql`
-        query($allocationID: String!) {
+        query ($allocationID: String!) {
           allocation(id: $allocationID) {
             id
             createdAtEpoch
@@ -167,7 +167,7 @@ export const getDispute = async (
   const result = await networkSubgraph
     .query(
       gql`
-        query($disputeID: String!) {
+        query ($disputeID: String!) {
           dispute(id: $disputeID) {
             id
             type
@@ -213,7 +213,7 @@ export const getNetworkSettings = async (
   const result = await networkSubgraph
     .query(
       gql`
-        query($networkId: Int!) {
+        query ($networkId: Int!) {
           graphNetwork(id: $networkId) {
             id
             indexingSlashingPercentage

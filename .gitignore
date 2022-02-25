@@ -3,6 +3,7 @@ cache/
 build/
 dist/
 coverage/
+src/**/*.js
 .env
 .DS_Store
 .vscode

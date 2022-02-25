@@ -70,7 +70,7 @@ export class PoiChecker {
     const result = await this.subgraph
       .query(
         gql`
-          query(
+          query (
             $subgraph: String!
             $blockHash: String!
             $blockNumber: Int!

@@ -60,7 +60,7 @@ export class DisputeResolver {
 
   constructor(env: Environment) {
     this.env = env
-    this.disputeManager = env.contracts.disputeManager
+    this.disputeManager = env.contracts.disputeManager as any
   }
 
   async showResolution(disputeID: string): Promise<void> {

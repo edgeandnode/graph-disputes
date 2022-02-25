@@ -12,6 +12,7 @@ import {
   NetworkContracts,
 } from '@graphprotocol/common-ts'
 
+import { addDefaultArgOptions } from '../config'
 import { log } from '../logging'
 import { approveIfRequired, waitTransaction } from '../network'
 import { askConfirm } from '../utils'
@@ -33,15 +34,17 @@ export const createIndexingDisputeCommand = {
   command: 'indexing <allocationID> <deposit>',
   describe: 'Create indexing dispute',
   builder: (yargs: Argv): Argv => {
-    return yargs
-      .option('account', {
-        description: 'Ethereum account',
-        type: 'string',
-        required: true,
-        group: 'Ethereum',
-      })
-      .positional('allocationID', { type: 'string' })
-      .positional('deposit', { type: 'string' })
+    return addDefaultArgOptions(
+      yargs
+        .option('account', {
+          description: 'Ethereum account',
+          type: 'string',
+          required: true,
+          group: 'Ethereum',
+        })
+        .positional('allocationID', { type: 'string' })
+        .positional('deposit', { type: 'string' }),
+    )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
@@ -96,15 +99,17 @@ export const createQueryDisputeCommand = {
   command: 'query <attestation> <deposit>',
   describe: 'Create query dispute',
   builder: (yargs: Argv): Argv => {
-    return yargs
-      .option('account', {
-        description: 'Ethereum account',
-        type: 'string',
-        required: true,
-        group: 'Ethereum',
-      })
-      .positional('attestation', { type: 'string' })
-      .positional('deposit', { type: 'string' })
+    return addDefaultArgOptions(
+      yargs
+        .option('account', {
+          description: 'Ethereum account',
+          type: 'string',
+          required: true,
+          group: 'Ethereum',
+        })
+        .positional('attestation', { type: 'string' })
+        .positional('deposit', { type: 'string' }),
+    )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
@@ -174,9 +179,11 @@ export const createCommand = {
   command: 'create',
   describe: 'Create dispute',
   builder: (yargs: Argv): Argv => {
-    return yargs
-      .command(createIndexingDisputeCommand)
-      .command(createQueryDisputeCommand)
+    return addDefaultArgOptions(
+      yargs
+        .command(createIndexingDisputeCommand)
+        .command(createQueryDisputeCommand),
+    )
   },
   handler: async (): Promise<void> => {
     yargs.showHelp()

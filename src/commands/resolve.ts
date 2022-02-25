@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import ethers from 'ethers'
 import yargs, { Argv } from 'yargs'
 import { NetworkContracts } from '@graphprotocol/common-ts'
 
+import { addDefaultArgOptions } from '../config'
 import { log } from '../logging'
 import { DisputeResolver } from '../resolver'
 
@@ -92,11 +92,13 @@ export const resolveCommand = {
   command: 'resolve',
   describe: 'Resolve dispute',
   builder: (yargs: Argv): Argv => {
-    return yargs
-      .command(acceptDisputeCommand)
-      .command(drawDisputeCommand)
-      .command(rejectDisputeCommand)
-      .command(verifyDisputeCommand)
+    return addDefaultArgOptions(
+      yargs
+        .command(acceptDisputeCommand)
+        .command(drawDisputeCommand)
+        .command(rejectDisputeCommand)
+        .command(verifyDisputeCommand),
+    )
   },
   handler: async (): Promise<void> => {
     yargs.showHelp()

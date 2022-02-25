@@ -7,6 +7,7 @@ import { SingleBar } from 'cli-progress'
 import { Argv } from 'yargs'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 
+import { addDefaultArgOptions } from '../config'
 import { log } from '../logging'
 import { formatEntry, populateEntry } from '../dispute'
 import { getDispute, getNetworkSettings } from '../model'
@@ -18,15 +19,17 @@ export const showCommand = {
   command: 'show <ids>',
   describe: 'Show arbitration dispute/s',
   builder: (yargs: Argv): Argv => {
-    return yargs
-      .positional('ids', {
-        description: 'Comma-separated list of dispute IDs',
-        type: 'string',
-      })
-      .option('rainbow', {
-        description: 'Prints a poi debugging table',
-        type: 'boolean',
-      })
+    return addDefaultArgOptions(
+      yargs
+        .positional('ids', {
+          description: 'Comma-separated list of dispute IDs',
+          type: 'string',
+        })
+        .option('rainbow', {
+          description: 'Prints a poi debugging table',
+          type: 'boolean',
+        }),
+    )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],

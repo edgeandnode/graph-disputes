@@ -23,7 +23,6 @@ export const setupCommand = {
         return
       }
     }
-
     // Ask for config parameter
     const res = await inquirer.prompt([
       {
@@ -57,7 +56,6 @@ export const setupCommand = {
         validate: isValidURL,
       },
     ])
-
     // Save config file
     log.info(`Saving config file (${DEFAULT_CONFIG_PATH})...`)
     initConfig({
