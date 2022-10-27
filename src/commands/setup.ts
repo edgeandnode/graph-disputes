@@ -52,9 +52,10 @@ export const setupCommand = {
       },
       {
         name: 'trusted-subgraph-network',
-        message: 'Trusted Subgraph Endpoint (Leave empty to skip)',
-        validate: (value: string) =>
-          value.length > 0 ? isValidURL(value) : true,
+        message: 'Trusted Subgraph Endpoint',
+        default: (answers: inquirer.Answers) =>
+          answers['network-subgraph-endpoint'],
+        validate: isValidURL,
       },
     ])
     // Save config file
