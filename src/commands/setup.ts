@@ -10,6 +10,10 @@ const isValidURL = (value: string): boolean | string => {
   return isValid || 'Invalid URL'
 }
 
+const isValidTrustedSubgraph = (value: string): boolean | string => {
+  return value.length > 0 ? isValidURL(value) : true
+}
+
 export const setupCommand = {
   command: 'setup',
   describe: 'Setup config',
@@ -52,8 +56,9 @@ export const setupCommand = {
       },
       {
         name: 'trusted-subgraph-network',
-        message: 'Trusted Subgraph Endpoint',
-        validate: isValidURL,
+        message: 'Trusted Subgraph Endpoint (Leave empty to skip)',
+        validate: (value: string) =>
+          value.length > 0 ? isValidURL(value) : true,
       },
     ])
     // Save config file
