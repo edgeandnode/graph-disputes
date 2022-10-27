@@ -39,7 +39,7 @@ graph-dispute setup
 graph-disputes list [--status <accepted|rejected|draw|undecided|all>]
 graph-disputes show <disputeID>
 
-# Submitter
+# Fisherman
 graph-disputes create indexing <allocationID> <deposit>
 graph-disputes create query <attestation> <deposit>
 
