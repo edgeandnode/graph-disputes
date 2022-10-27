@@ -10,10 +10,6 @@ const isValidURL = (value: string): boolean | string => {
   return isValid || 'Invalid URL'
 }
 
-const isValidTrustedSubgraph = (value: string): boolean | string => {
-  return value.length > 0 ? isValidURL(value) : true
-}
-
 export const setupCommand = {
   command: 'setup',
   describe: 'Setup config',
