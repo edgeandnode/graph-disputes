@@ -53,6 +53,8 @@ export const setupCommand = {
       {
         name: 'trusted-subgraph-network',
         message: 'Trusted Subgraph Endpoint',
+        default: (answers: inquirer.Answers) =>
+          answers['network-subgraph-endpoint'],
         validate: isValidURL,
       },
     ])
