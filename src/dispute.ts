@@ -252,7 +252,7 @@ export const formatEntry = (
     [chalk.bold('Type')]: styleType(entry.Type),
     [chalk.bold('Status')]: `${styleDisputeStatus(entry.Status)} (${
       entry.Status.lastActionAgo
-    } days ago) [${resolutionEpochsLeft} days left to resolve]`,
+    } days ago) [${resolutionEpochsLeft} epochs left to resolve]`,
     [chalk.bold('Indexer')]: entry.Indexer.name
       ? `${chalk.bold.cyanBright(entry.Indexer.name)} ` +
         chalk.gray(`(${entry.Indexer.id})`)
