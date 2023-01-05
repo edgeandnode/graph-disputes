@@ -99,14 +99,25 @@ function relativeDays(ts: number) {
   return ((+new Date() / 1000 - ts) / DAY_SECONDS).toFixed(2)
 }
 
+export const getDisputeResolutionEpochsLeft = (
+  closedAtEpoch: number,
+  networkSettings: GraphNetwork,
+) => {
+  const { currentEpoch, thawingPeriod, epochLength } = networkSettings
+  const thawingPeriodInEpochs = Math.round(thawingPeriod / epochLength)
+  const deadlineEpochs = 2 * thawingPeriodInEpochs
+  return deadlineEpochs - (currentEpoch - closedAtEpoch)
+}
+
 export const isDisputeOlderThanTwoThawingPeriods = (
   closedAtEpoch: number,
   networkSettings: GraphNetwork,
 ): boolean => {
-  const { currentEpoch, thawingPeriod, epochLength } = networkSettings
-  const thawingPeriodInEpochs = Math.round(thawingPeriod / epochLength)
-
-  return currentEpoch - closedAtEpoch > 2 * thawingPeriodInEpochs
+  const resolutionEpochsLeft = getDisputeResolutionEpochsLeft(
+    closedAtEpoch,
+    networkSettings,
+  )
+  return resolutionEpochsLeft <= 0
 }
 
 export const populateEntry = async (
@@ -232,11 +243,16 @@ export const formatEntry = (
   entry: DisputeEntry,
   networkSettings: GraphNetwork,
 ): Record<string, any> => {
+  const resolutionEpochsLeft = getDisputeResolutionEpochsLeft(
+    entry.Allocation.closedAtEpoch.id,
+    networkSettings,
+  )
+
   const formattedEntry = {
     [chalk.bold('Type')]: styleType(entry.Type),
     [chalk.bold('Status')]: `${styleDisputeStatus(entry.Status)} (${
       entry.Status.lastActionAgo
-    } days ago)`,
+    } days ago) [${resolutionEpochsLeft} days left to resolve]`,
     [chalk.bold('Indexer')]: entry.Indexer.name
       ? `${chalk.bold.cyanBright(entry.Indexer.name)} ` +
         chalk.gray(`(${entry.Indexer.id})`)
