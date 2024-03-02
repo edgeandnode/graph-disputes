@@ -134,6 +134,7 @@ export const createQueryDisputeCommand = {
         chainId,
         contracts.disputeManager.address,
         attestation,
+        '0',
       )
       log.info('AllocationID: ${allocationID}')
 
