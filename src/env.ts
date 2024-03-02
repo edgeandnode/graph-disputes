@@ -43,7 +43,7 @@ export const setupEnv = async (
   // Contracts
   let contracts = undefined
   try {
-    contracts = await connectContracts(provider, network.chainId)
+    contracts = await connectContracts(provider, network.chainId, null)
   } catch (err) {
     console.error(
       `Failed to connect to contracts, please ensure you are using the intended Ethereum Network`,
