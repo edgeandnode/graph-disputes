@@ -1,0 +1,42 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "dispute frontend",
+  "author": "AG",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^4.6.2",
+    "antd": "^4.14.1",
+    "axios": "^0.21.4",
+    "babel-plugin-import": "^1.13.3",
+    "next": "^10.2.3",
+    "next-compose-plugins": "^2.2.1",
+    "next-images": "^1.7.0",
+    "next-plugin-antd-less": "^1.4.2",
+    "null-loader": "4.0.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "swr": "^1.0.0",
+    "uuid": "^8.3.2",
+    "zustand": "^3.5.10"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@types/node": "13.13.4",
+    "@types/react": "^16.9.36",
+    "@typescript-eslint/eslint-plugin": "^4.31.2",
+    "@typescript-eslint/parser": "^4.31.2",
+    "@zeit/next-css": "^1.0.1",
+    "babel-loader": "^8.2.2",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.1",
+    "typescript": "^4.4.3",
+    "webpack": "^4.44.0"
+  }
+}
