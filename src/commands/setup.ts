@@ -43,6 +43,10 @@ export const setupCommand = {
             key: 'rinkeby',
             value: 'rinkeby',
           },
+	  {
+            key: 'arbitrum-one',
+            value: 'arbitrum-one',
+          }
         ],
       },
       {
