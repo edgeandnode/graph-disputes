@@ -36,7 +36,7 @@ export const setupEnv = async (
       password: ethereum.password,
       allowInsecureAuthentication: true,
     },
-    argv.ethereumNetwork,
+    argv.ethereumNetwork == 'arbitrum-one' ? 'arbitrum' : argv.ethereumNetwork,
   )
   const network = await provider.getNetwork()
 
