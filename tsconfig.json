@@ -1,14 +1,26 @@
 {
   "compilerOptions": {
     "lib": ["ES2020", "dom"],
+    "rootDir": "src",
+    "outDir": "dist",
+    "target": "es2020",
+    "lib": ["es2018", "dom"],
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES2020",
     "outDir": "dist",
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "composite": false,
+    "sourceMap": false,
+    "strict": false
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "include": [
+    "src/*.ts",
+    "src/commands/*.ts",
+    "src/commands/**/*.ts",
+    "src/commands/**/**/*.ts"
+  ],
+  "exclude": []
 }
