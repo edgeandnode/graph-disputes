@@ -36,12 +36,12 @@ export const setupCommand = {
         message: 'Ethereum Network',
         choices: [
           {
-            key: 'mainnet',
-            value: 'mainnet',
+            key: 'arbitrum',
+            value: 'arbitrum',
           },
           {
-            key: 'rinkeby',
-            value: 'rinkeby',
+            key: 'arbitrum-sepolia',
+            value: 'arbitrum-sepolia',
           },
         ],
       },
