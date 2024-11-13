@@ -29,15 +29,12 @@ export const setupEnv = async (
     throw err
   }
 
-  const provider = new providers.StaticJsonRpcProvider(
-    {
-      url: ethereum.toString(),
-      user: ethereum.username,
-      password: ethereum.password,
-      allowInsecureAuthentication: true,
-    },
-    argv.ethereumNetwork,
-  )
+  const provider = new providers.StaticJsonRpcProvider({
+    url: ethereum.toString(),
+    user: ethereum.username,
+    password: ethereum.password,
+    allowInsecureAuthentication: true,
+  })
   const network = await provider.getNetwork()
 
   // Contracts
