@@ -43,6 +43,10 @@ export const setupCommand = {
             key: 'arbitrum-sepolia',
             value: 'arbitrum-sepolia',
           },
+	  {
+            key: 'arbitrum-one',
+            value: 'arbitrum-one',
+          }
         ],
       },
       {
