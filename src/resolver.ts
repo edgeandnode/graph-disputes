@@ -20,7 +20,10 @@ enum DisputeResolution {
 
 const disputeResolutionCalls: Map<DisputeResolution, string> = new Map([
   [DisputeResolution.Accept, 'acceptDispute(bytes32,uint256)'],
-  [DisputeResolution.AcceptConflict, 'acceptDisputeConflict(bytes32,uint256,bool,uint256)'],
+  [
+    DisputeResolution.AcceptConflict,
+    'acceptDisputeConflict(bytes32,uint256,bool,uint256)',
+  ],
   [DisputeResolution.Reject, 'rejectDispute(bytes32)'],
   [DisputeResolution.Draw, 'drawDispute(bytes32)'],
 ])
@@ -87,6 +90,12 @@ export class DisputeResolver {
   async validateStatuteOfLimitations(disputeID: string): Promise<boolean> {
     const dispute = await getDispute(this.env.networkSubgraph, disputeID)
     const networkSettings = await getNetworkSettings(this.env.networkSubgraph)
+
+    // Query disputes don't have an allocation associated with them so we can't check the statute of limitations
+    if (!dispute.allocation) {
+      return true
+    }
+
     return !isDisputeOlderThanTwoThawingPeriods(
       dispute.allocation.closedAtEpoch,
       networkSettings,
@@ -118,26 +127,46 @@ export class DisputeResolver {
   }
 
   @confirmResolve
-  async accept(disputeID: string, tokensSlash: bigint, execute = false): Promise<void> {
+  async accept(
+    disputeID: string,
+    tokensSlash: bigint,
+    execute = false,
+  ): Promise<void> {
     log.info(`Accepting dispute ${disputeID}...`)
     if (!(await this.validateStatuteOfLimitations(disputeID))) {
       this.showStatuteOfLimitationsError()
       return
     }
 
-    const transaction = await this.disputeManager.acceptDispute.populateTransaction(disputeID, tokensSlash)
+    const transaction =
+      await this.disputeManager.acceptDispute.populateTransaction(
+        disputeID,
+        tokensSlash,
+      )
     await this.commit(transaction, execute)
   }
 
   @confirmResolve
-  async acceptConflict(disputeID: string, tokensSlash: bigint, acceptDisputeInConflict: boolean, tokensSlashRelated: bigint, execute = false): Promise<void> {
+  async acceptConflict(
+    disputeID: string,
+    tokensSlash: bigint,
+    acceptDisputeInConflict: boolean,
+    tokensSlashRelated: bigint,
+    execute = false,
+  ): Promise<void> {
     log.info(`Accepting conflict dispute ${disputeID}...`)
     if (!(await this.validateStatuteOfLimitations(disputeID))) {
       this.showStatuteOfLimitationsError()
       return
     }
 
-    const transaction = await this.disputeManager.acceptDisputeConflict.populateTransaction(disputeID, tokensSlash, acceptDisputeInConflict, tokensSlashRelated)
+    const transaction =
+      await this.disputeManager.acceptDisputeConflict.populateTransaction(
+        disputeID,
+        tokensSlash,
+        acceptDisputeInConflict,
+        tokensSlashRelated,
+      )
     await this.commit(transaction, execute)
   }
 
@@ -149,14 +178,16 @@ export class DisputeResolver {
       return
     }
 
-    const transaction = await this.disputeManager.rejectDispute.populateTransaction(disputeID)
+    const transaction =
+      await this.disputeManager.rejectDispute.populateTransaction(disputeID)
     await this.commit(transaction, execute)
   }
 
   @confirmResolve
   async draw(disputeID: string, execute = false): Promise<void> {
     log.info(`Drawing dispute ${disputeID}...`)
-    const transaction = await this.disputeManager.drawDispute.populateTransaction(disputeID)
+    const transaction =
+      await this.disputeManager.drawDispute.populateTransaction(disputeID)
     await this.commit(transaction, execute)
   }
 }

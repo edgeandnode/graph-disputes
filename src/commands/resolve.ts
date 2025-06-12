@@ -38,12 +38,17 @@ export const acceptDisputeCommand = {
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     const resolver = new DisputeResolver(argv.env)
-    await resolver.accept(argv.disputeID, BigInt(argv.tokensSlash), argv.execute)
+    await resolver.accept(
+      argv.disputeID,
+      BigInt(argv.tokensSlash),
+      argv.execute,
+    )
   },
 }
 
 export const acceptConflictDisputeCommand = {
-  command: 'accept-conflict <disputeID> <tokensSlash> <acceptDisputeInConflict> <tokensSlashRelated>',
+  command:
+    'accept-conflict <disputeID> <tokensSlash> <acceptDisputeInConflict> <tokensSlashRelated>',
   describe: 'Accept conflict dispute',
   builder: resolveCmdBuilder,
   handler: async (
@@ -53,7 +58,13 @@ export const acceptConflictDisputeCommand = {
     // TODO: is this necessary?
     const tokensSlashWei = parseGRT(argv.tokensSlash)
     const tokensSlashRelatedWei = parseGRT(argv.tokensSlashRelated)
-    await resolver.acceptConflict(argv.disputeID, tokensSlashWei, argv.acceptDisputeInConflict, tokensSlashRelatedWei, argv.execute)
+    await resolver.acceptConflict(
+      argv.disputeID,
+      tokensSlashWei,
+      argv.acceptDisputeInConflict,
+      tokensSlashRelatedWei,
+      argv.execute,
+    )
   },
 }
 

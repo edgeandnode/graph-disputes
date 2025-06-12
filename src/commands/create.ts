@@ -111,7 +111,7 @@ export const createQueryDisputeCommand = {
           required: true,
           group: 'Ethereum',
         })
-        .positional('attestation', { type: 'string' })
+        .positional('attestation', { type: 'string' }),
     )
   },
   handler: async (
