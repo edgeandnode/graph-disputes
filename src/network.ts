@@ -1,17 +1,17 @@
-import { BigNumber, ContractTransaction, Signer, providers } from 'ethers'
-import { GraphToken } from '@graphprotocol/contracts/dist/types/GraphToken'
+import { Signer, TransactionReceipt, TransactionResponse } from 'ethers'
+import { IGraphToken } from '@graphprotocol/horizon'
 
 import { log } from './logging'
 
 export const approveIfRequired = async (
-  token: GraphToken,
+  token: IGraphToken,
   sender: Signer,
   spender: string,
-  amount: BigNumber,
-): Promise<providers.TransactionReceipt> | null => {
+  amount: bigint,
+): Promise<TransactionReceipt | null> => {
   const owner = await sender.getAddress()
   const allowance = await token.allowance(owner, spender)
-  if (allowance.lt(amount)) {
+  if (allowance < amount) {
     const tx = await token.connect(sender).approve(spender, amount)
     return waitTransaction(tx)
   }
@@ -19,8 +19,8 @@ export const approveIfRequired = async (
 }
 
 export const waitTransaction = async (
-  tx: ContractTransaction,
-): Promise<providers.TransactionReceipt> => {
+  tx: TransactionResponse,
+): Promise<TransactionReceipt> => {
   log.info(`Transaction sent: ${tx.hash}`)
   const receipt = await tx.wait()
   receipt.status

@@ -54,7 +54,7 @@ export interface GraphNetwork {
   minimumDisputeDeposit: number
   querySlashingPercentage: number
   currentEpoch: number
-  thawingPeriod: number
+  maxThawingPeriod: number
   epochLength: number
 }
 
@@ -218,7 +218,7 @@ export const getNetworkSettings = async (
             id
             indexingSlashingPercentage
             currentEpoch
-            thawingPeriod
+            maxThawingPeriod
             epochLength
           }
         }

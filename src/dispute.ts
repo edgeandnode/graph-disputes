@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
-import { BigNumber } from 'ethers'
 
 import { getEpoch, Dispute, GraphNetwork } from './model'
 import { Environment } from './env'
@@ -103,8 +102,8 @@ export const getDisputeResolutionEpochsLeft = (
   closedAtEpoch: number,
   networkSettings: GraphNetwork,
 ) => {
-  const { currentEpoch, thawingPeriod, epochLength } = networkSettings
-  const thawingPeriodInEpochs = Math.round(thawingPeriod / epochLength)
+  const { currentEpoch, maxThawingPeriod, epochLength } = networkSettings
+  const thawingPeriodInEpochs = Math.round(maxThawingPeriod / epochLength)
   const deadlineEpochs = 2 * thawingPeriodInEpochs
   return deadlineEpochs - (currentEpoch - closedAtEpoch)
 }
@@ -125,6 +124,7 @@ export const populateEntry = async (
   env: Environment,
   networkSettings: GraphNetwork,
   extended = false,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   const { networkSubgraph, provider, poiChecker } = env
 
@@ -150,14 +150,14 @@ export const populateEntry = async (
   const hasProof = lastPoi && prevPoi
 
   const lastActionAgo = relativeDays(dispute.createdAt)
-  const partsPerMillion = 1000000
+  const partsPerMillion = 1000000n
   const slashableStake = toGRT(
-    BigNumber.from(dispute.indexer.indexer.stakedTokens)
-      .mul(networkSettings.indexingSlashingPercentage)
-      .div(partsPerMillion),
+    (BigInt(dispute.indexer.indexer.stakedTokens) *
+      BigInt(networkSettings.indexingSlashingPercentage)) /
+      partsPerMillion,
   )
   const indexingRewards = toGRT(
-    BigNumber.from(dispute.allocation.indexingIndexerRewards),
+    BigInt(dispute.allocation.indexingIndexerRewards),
   )
 
   const indexerName = dispute.indexer.defaultDisplayName
@@ -242,6 +242,7 @@ export const populateEntry = async (
 export const formatEntry = (
   entry: DisputeEntry,
   networkSettings: GraphNetwork,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Record<string, any> => {
   const resolutionEpochsLeft = getDisputeResolutionEpochsLeft(
     entry.Allocation.closedAtEpoch.id,

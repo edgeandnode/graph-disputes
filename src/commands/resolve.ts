@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import yargs, { Argv } from 'yargs'
-import { NetworkContracts } from '@graphprotocol/common-ts'
 
 import { addDefaultArgOptions } from '../config'
 import { log } from '../logging'
 import { DisputeResolver } from '../resolver'
+import {
+  GraphHorizonContracts,
+  SubgraphServiceContracts,
+} from '@graphprotocol/toolshed/deployments'
+import { parseGRT } from '@graphprotocol/common-ts'
 
 const resolveCmdBuilder = (yargs: Argv): Argv => {
   return yargs
@@ -27,14 +31,29 @@ const resolveCmdBuilder = (yargs: Argv): Argv => {
 }
 
 export const acceptDisputeCommand = {
-  command: 'accept <disputeID>',
+  command: 'accept <disputeID> <tokensSlash>',
   describe: 'Accept dispute',
   builder: resolveCmdBuilder,
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     const resolver = new DisputeResolver(argv.env)
-    await resolver.accept(argv.disputeID, argv.execute)
+    await resolver.accept(argv.disputeID, BigInt(argv.tokensSlash), argv.execute)
+  },
+}
+
+export const acceptConflictDisputeCommand = {
+  command: 'accept-conflict <disputeID> <tokensSlash> <acceptDisputeInConflict> <tokensSlashRelated>',
+  describe: 'Accept conflict dispute',
+  builder: resolveCmdBuilder,
+  handler: async (
+    argv: { [key: string]: any } & Argv['argv'],
+  ): Promise<void> => {
+    const resolver = new DisputeResolver(argv.env)
+    // TODO: is this necessary?
+    const tokensSlashWei = parseGRT(argv.tokensSlash)
+    const tokensSlashRelatedWei = parseGRT(argv.tokensSlashRelated)
+    await resolver.acceptConflict(argv.disputeID, tokensSlashWei, argv.acceptDisputeInConflict, tokensSlashRelatedWei, argv.execute)
   },
 }
 
@@ -71,16 +90,17 @@ export const verifyDisputeCommand = {
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
-    const contracts: NetworkContracts = argv.env.contracts
+    const contracts: GraphHorizonContracts & SubgraphServiceContracts =
+      argv.env.contracts
 
     log.info(`Decoding: ${argv.payload}`)
     log.info('--------')
 
     try {
-      const call = contracts.disputeManager.interface.parseTransaction({
+      const call = contracts.DisputeManager.interface.parseTransaction({
         data: argv.payload,
       })
-      log.info(`> Resolve: ${call.signature} (${call.sighash})`)
+      log.info(`> Resolve: ${call.signature} (${call.selector})`)
       log.info(`> Dispute: ${call.args}`)
     } catch (err) {
       log.error(`ERROR: ${err.reason}`)
