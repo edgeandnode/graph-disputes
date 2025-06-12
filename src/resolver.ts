@@ -114,8 +114,6 @@ export class DisputeResolver {
     transaction: TransactionRequest,
     execute: boolean,
   ): Promise<TransactionReceipt | void> {
-    // const functionName = disputeResolutionCalls.get(resolve)
-
     // Execute transaction
     if (execute) {
       const tx = await this.env.account.sendTransaction(transaction)
