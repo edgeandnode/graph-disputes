@@ -17,8 +17,8 @@
     "format": "prettier --write src/*.ts src/**/*.ts src/**/**/*.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "compile": "tsc --build",
-    "prepare": "yarn format && yarn lint && yarn compile",
-    "start": "yarn prepare && node ./dist/index.js start",
+    "prepare": "pnpm format && pnpm lint && pnpm compile",
+    "start": "pnpm prepare && node ./dist/index.js start",
     "clean": "rm -rf ./node_modules ./dist ./tsconfig.tsbuildinfo"
   },
   "bin": {

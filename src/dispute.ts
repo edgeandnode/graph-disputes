@@ -160,9 +160,7 @@ export const populateEntry = async (
       poiChecker.getPoi(subgraphDeployment, prevBlock, dispute.indexer.id),
     ])
     const hasProof = lastPoi && prevPoi
-    indexingRewards = toGRT(
-      BigInt(dispute.allocation.indexingIndexerRewards),
-    )
+    indexingRewards = toGRT(BigInt(dispute.allocation.indexingIndexerRewards))
 
     allocation = {
       id: dispute.allocation.id,
