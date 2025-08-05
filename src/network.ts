@@ -1,10 +1,10 @@
 import { Signer, TransactionReceipt, TransactionResponse } from 'ethers'
-import { IGraphToken } from '@graphprotocol/horizon'
+import { L2GraphToken } from '@graphprotocol/interfaces'
 
 import { log } from './logging'
 
 export const approveIfRequired = async (
-  token: IGraphToken,
+  token: L2GraphToken,
   sender: Signer,
   spender: string,
   amount: bigint,

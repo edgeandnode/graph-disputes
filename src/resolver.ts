@@ -2,7 +2,7 @@ import { TransactionReceipt, TransactionRequest } from 'ethers'
 import treeify from 'object-treeify'
 import ora from 'ora'
 import chalk from 'chalk'
-import { DisputeManager } from '@graphprotocol/subgraph-service'
+import { DisputeManager } from '@graphprotocol/interfaces'
 
 import { log } from './logging'
 import { populateEntry, isDisputeOlderThanTwoThawingPeriods } from './dispute'

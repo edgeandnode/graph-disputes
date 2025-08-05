@@ -19,14 +19,17 @@
     "compile": "tsc --build",
     "prepare": "pnpm format && pnpm lint && pnpm compile",
     "start": "pnpm prepare && node ./dist/index.js start",
-    "clean": "rm -rf ./node_modules ./dist ./tsconfig.tsbuildinfo"
+    "clean": "rm -rf ./node_modules ./dist ./tsconfig.tsbuildinfo",
+    "test": "pnpm compile && npx mocha --require ts-node/register test/**/*.test.ts",
+    "test:smoke": "node dist/index.js --help && node dist/index.js create --help"
   },
   "bin": {
     "graph-disputes": "bin/graph-disputes"
   },
   "dependencies": {
     "@graphprotocol/common-ts": "3.0.1",
-    "@graphprotocol/toolshed": "0.5.5",
+    "@graphprotocol/interfaces": "0.5.2",
+    "@graphprotocol/toolshed": "0.6.10",
     "@iarna/toml": "^2.2.5",
     "@types/cli-progress": "^3.9.1",
     "@types/find-up": "^4.0.0",
@@ -61,6 +64,12 @@
     "yargs": "^17.0.0"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.10"
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^10.0.0",
+    "chai": "^4.3.0",
+    "mocha": "^10.8.2",
+    "sinon": "^15.0.0",
+    "ts-node": "^10.9.0"
   }
 }

@@ -1,5 +1,3 @@
-// function createIndexingDispute(address _allocationID, uint256 _deposit)
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { JsonRpcProvider, Wallet } from 'ethers'
@@ -32,7 +30,7 @@ const validateAllocation = async (
 }
 
 export const createIndexingDisputeCommand = {
-  command: 'indexing <allocationID> <poi>',
+  command: 'indexing <allocationID> <poi> <blockNumber>',
   describe: 'Create indexing dispute',
   builder: (yargs: Argv): Argv => {
     return addDefaultArgOptions(
@@ -43,8 +41,18 @@ export const createIndexingDisputeCommand = {
           required: true,
           group: 'Ethereum',
         })
-        .positional('allocationID', { type: 'string' })
-        .positional('poi', { type: 'string' }),
+        .positional('allocationID', {
+          type: 'string',
+          describe: 'The allocation ID to dispute',
+        })
+        .positional('poi', {
+          type: 'string',
+          describe: 'The proof of indexing hash',
+        })
+        .positional('blockNumber', {
+          type: 'number',
+          describe: 'The block number for which the POI was calculated',
+        }),
     )
   },
   handler: async (
@@ -57,6 +65,7 @@ export const createIndexingDisputeCommand = {
     }
     const allocationID = argv.allocationID
     const poi = argv.poi
+    const blockNumber = argv.blockNumber
     const sender = new Wallet(argv.account, provider)
     const deposit = await contracts.DisputeManager.disputeDeposit()
 
@@ -91,7 +100,7 @@ export const createIndexingDisputeCommand = {
       log.info(`Disputing ${allocationID}...`)
       const tx = await contracts.DisputeManager.connect(
         sender,
-      ).createIndexingDispute(allocationID, poi)
+      ).createIndexingDispute(allocationID, poi, blockNumber)
       await waitTransaction(tx)
     } catch (err) {
       log.error(err.message)

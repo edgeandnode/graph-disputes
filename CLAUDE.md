@@ -105,3 +105,9 @@ The CLI supports multiple networks (mainnet, testnet). Configuration includes:
 - No semicolons, single quotes, 2-space indentation
 - Minimal comments, self-documenting code
 - Follow existing patterns in neighboring files
+
+## Git Commit Preferences
+
+- Use single-line commit messages
+- Do NOT include "Generated with Claude Code" or similar attribution text
+- Follow conventional commit format: `type: description`
