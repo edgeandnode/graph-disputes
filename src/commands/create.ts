@@ -1,37 +1,36 @@
-// function createIndexingDispute(address _allocationID, uint256 _deposit)
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { constants, Wallet } from 'ethers'
+import { JsonRpcProvider, Wallet } from 'ethers'
 import yargs, { Argv } from 'yargs'
 import {
   parseGRT,
   Attestation,
   decodeAttestation,
   recoverAttestation,
-  NetworkContracts,
 } from '@graphprotocol/common-ts'
+import {
+  GraphHorizonContracts,
+  SubgraphServiceContracts,
+} from '@graphprotocol/toolshed/deployments'
 
 import { addDefaultArgOptions } from '../config'
 import { log } from '../logging'
 import { approveIfRequired, waitTransaction } from '../network'
 import { askConfirm } from '../utils'
 
-const { AddressZero } = constants
-
 const validateAllocation = async (
-  contracts: NetworkContracts,
+  contracts: GraphHorizonContracts & SubgraphServiceContracts,
   allocationID: string,
 ): Promise<string> => {
-  const allocation = await contracts.staking.getAllocation(allocationID)
-  if (allocation.indexer === AddressZero) {
+  const allocation = await contracts.SubgraphService.getAllocation(allocationID)
+  if (allocation.indexer === '0x0000000000000000000000000000000000000000') {
     throw new Error(`Allocation ${allocationID} not found in the contracts`)
   }
   return allocation.indexer
 }
 
 export const createIndexingDisputeCommand = {
-  command: 'indexing <allocationID> <deposit>',
+  command: 'indexing <allocationID> <poi> <blockNumber>',
   describe: 'Create indexing dispute',
   builder: (yargs: Argv): Argv => {
     return addDefaultArgOptions(
@@ -42,19 +41,33 @@ export const createIndexingDisputeCommand = {
           required: true,
           group: 'Ethereum',
         })
-        .positional('allocationID', { type: 'string' })
-        .positional('deposit', { type: 'string' }),
+        .positional('allocationID', {
+          type: 'string',
+          describe: 'The allocation ID to dispute',
+        })
+        .positional('poi', {
+          type: 'string',
+          describe: 'The proof of indexing hash',
+        })
+        .positional('blockNumber', {
+          type: 'number',
+          describe: 'The block number for which the POI was calculated',
+        }),
     )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     // Parse arguments
-    const { provider, contracts } = argv.env
+    const { provider, contracts } = argv.env as {
+      provider: JsonRpcProvider
+      contracts: GraphHorizonContracts & SubgraphServiceContracts
+    }
     const allocationID = argv.allocationID
-    const deposit = argv.deposit
-    const depositWei = parseGRT(deposit)
+    const poi = argv.poi
+    const blockNumber = argv.blockNumber
     const sender = new Wallet(argv.account, provider)
+    const deposit = await contracts.DisputeManager.disputeDeposit()
 
     try {
       // Look for allocation and indexer address
@@ -74,10 +87,10 @@ export const createIndexingDisputeCommand = {
       // Approve
       log.info(`Approving ${deposit} GRT...`)
       const approvalReceipt = await approveIfRequired(
-        contracts.token,
+        contracts.GraphToken,
         sender,
-        contracts.disputeManager.address,
-        depositWei,
+        contracts.DisputeManager.target.toString(),
+        deposit,
       )
       log.info(
         approvalReceipt ? 'Deposit approved' : 'Skipped approval, not needed',
@@ -85,9 +98,9 @@ export const createIndexingDisputeCommand = {
 
       // Dispute
       log.info(`Disputing ${allocationID}...`)
-      const tx = await contracts.disputeManager
-        .connect(sender)
-        .createIndexingDispute(allocationID, depositWei)
+      const tx = await contracts.DisputeManager.connect(
+        sender,
+      ).createIndexingDispute(allocationID, poi, blockNumber)
       await waitTransaction(tx)
     } catch (err) {
       log.error(err.message)
@@ -96,7 +109,7 @@ export const createIndexingDisputeCommand = {
 }
 
 export const createQueryDisputeCommand = {
-  command: 'query <attestation> <deposit>',
+  command: 'query <attestation>',
   describe: 'Create query dispute',
   builder: (yargs: Argv): Argv => {
     return addDefaultArgOptions(
@@ -107,41 +120,43 @@ export const createQueryDisputeCommand = {
           required: true,
           group: 'Ethereum',
         })
-        .positional('attestation', { type: 'string' })
-        .positional('deposit', { type: 'string' }),
+        .positional('attestation', { type: 'string' }),
     )
   },
   handler: async (
     argv: { [key: string]: any } & Argv['argv'],
   ): Promise<void> => {
     // Parse arguments
-    const { provider, contracts } = argv.env
+    const { provider, contracts } = argv.env as {
+      provider: JsonRpcProvider
+      contracts: GraphHorizonContracts & SubgraphServiceContracts
+    }
+    const DisputeManager = contracts.DisputeManager
     const attestationBytes = argv.attestation
-    const deposit = argv.deposit
-    const depositWei = parseGRT(deposit)
+    const deposit = await DisputeManager.disputeDeposit()
     const sender = new Wallet(argv.account, provider)
+    const network = await provider.getNetwork()
 
     try {
       // Decode attestation
       log.info('## Decoding attestation')
       const attestation: Attestation = decodeAttestation(attestationBytes)
-      log.info(attestation)
+      log.info(JSON.stringify(attestation, null, 2))
 
       // Recover signature
       log.info('## Recovering signer')
-      const chainId = await provider.getNetwork().then(n => n.chainId)
       const allocationID = recoverAttestation(
-        chainId,
-        contracts.disputeManager.address,
+        Number(network.chainId),
+        DisputeManager.target.toString(),
         attestation,
         '0',
       )
-      log.info('AllocationID: ${allocationID}')
+      log.info(`AllocationID: ${allocationID}`)
 
       // Look for allocation and indexer address
       log.info(`## Looking for on-chain allocation data`)
       const indexerAddress = await validateAllocation(contracts, allocationID)
-      log.info('Indexer: ${indexerAddress}')
+      log.info(`Indexer: ${indexerAddress}`)
 
       // Confirm
       if (
@@ -155,10 +170,10 @@ export const createQueryDisputeCommand = {
       // Approve
       log.info(`## Approving ${deposit} GRT...`)
       const approvalReceipt = await approveIfRequired(
-        contracts.token,
+        contracts.GraphToken,
         sender,
-        contracts.disputeManager.address,
-        depositWei,
+        DisputeManager.target.toString(),
+        deposit,
       )
       log.info(
         approvalReceipt ? 'Deposit approved' : 'Skipped approval, not needed',
@@ -166,9 +181,9 @@ export const createQueryDisputeCommand = {
 
       // Dispute
       log.info(`## Disputing ${indexerAddress}...`)
-      const tx = await contracts.disputeManager
-        .connect(sender)
-        .createQueryDispute(attestationBytes, depositWei)
+      const tx = await contracts.DisputeManager.connect(
+        sender,
+      ).createQueryDispute(attestationBytes)
       await waitTransaction(tx)
     } catch (err) {
       log.error(err.message)

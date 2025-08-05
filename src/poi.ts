@@ -1,6 +1,6 @@
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
 import { Client } from '@urql/core'
-import { providers } from 'ethers'
+import { JsonRpcProvider } from 'ethers'
 import gql from 'graphql-tag'
 import PQueue from 'p-queue'
 
@@ -15,10 +15,10 @@ export interface EthereumBlock {
 }
 
 export class PoiChecker {
-  provider: providers.Provider
+  provider: JsonRpcProvider
   subgraph: Client
 
-  constructor(provider: providers.Provider, subgraph: Client) {
+  constructor(provider: JsonRpcProvider, subgraph: Client) {
     this.provider = provider
     this.subgraph = subgraph
   }

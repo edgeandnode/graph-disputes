@@ -1,8 +1,6 @@
 import inquirer from 'inquirer'
 import chalk from 'chalk'
-import { BigNumber, utils } from 'ethers'
-
-const { formatUnits } = utils
+import { formatUnits } from 'ethers'
 
 export const treeifyFormat = {
   joined: true,
@@ -22,6 +20,6 @@ export const askConfirm = async (message: string): Promise<boolean> => {
   return res.confirm
 }
 
-export const toGRT = (value: BigNumber): string => {
+export const toGRT = (value: bigint): string => {
   return formatUnits(value)
 }

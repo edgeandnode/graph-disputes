@@ -1,8 +1,8 @@
-import { providers } from 'ethers'
+import { TransactionReceipt, TransactionRequest } from 'ethers'
 import treeify from 'object-treeify'
 import ora from 'ora'
 import chalk from 'chalk'
-import { DisputeManager } from '@graphprotocol/contracts/dist/types/DisputeManager'
+import { DisputeManager } from '@graphprotocol/interfaces'
 
 import { log } from './logging'
 import { populateEntry, isDisputeOlderThanTwoThawingPeriods } from './dispute'
@@ -13,17 +13,23 @@ import { askConfirm, treeifyFormat } from './utils'
 
 enum DisputeResolution {
   Accept = 1,
+  AcceptConflict,
   Reject,
   Draw,
 }
 
 const disputeResolutionCalls: Map<DisputeResolution, string> = new Map([
-  [DisputeResolution.Accept, 'acceptDispute(bytes32)'],
+  [DisputeResolution.Accept, 'acceptDispute(bytes32,uint256)'],
+  [
+    DisputeResolution.AcceptConflict,
+    'acceptDisputeConflict(bytes32,uint256,bool,uint256)',
+  ],
   [DisputeResolution.Reject, 'rejectDispute(bytes32)'],
   [DisputeResolution.Draw, 'drawDispute(bytes32)'],
 ])
 
 const confirmResolve = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   target: any,
   propertyKey: string,
   descriptor: PropertyDescriptor,
@@ -60,7 +66,7 @@ export class DisputeResolver {
 
   constructor(env: Environment) {
     this.env = env
-    this.disputeManager = env.contracts.disputeManager as any
+    this.disputeManager = env.contracts.DisputeManager
   }
 
   async showResolution(disputeID: string): Promise<void> {
@@ -84,6 +90,12 @@ export class DisputeResolver {
   async validateStatuteOfLimitations(disputeID: string): Promise<boolean> {
     const dispute = await getDispute(this.env.networkSubgraph, disputeID)
     const networkSettings = await getNetworkSettings(this.env.networkSubgraph)
+
+    // Query disputes don't have an allocation associated with them so we can't check the statute of limitations
+    if (!dispute.allocation) {
+      return true
+    }
+
     return !isDisputeOlderThanTwoThawingPeriods(
       dispute.allocation.closedAtEpoch,
       networkSettings,
@@ -99,50 +111,81 @@ export class DisputeResolver {
   }
 
   async commit(
-    disputeID: string,
-    resolve: DisputeResolution,
+    transaction: TransactionRequest,
     execute: boolean,
-  ): Promise<providers.TransactionReceipt | void> {
-    const functionName = disputeResolutionCalls.get(resolve)
-
+  ): Promise<TransactionReceipt | void> {
     // Execute transaction
     if (execute) {
-      const tx = await this.disputeManager
-        .connect(this.env.account)
-        .functions[functionName](disputeID)
+      const tx = await this.env.account.sendTransaction(transaction)
       return waitTransaction(tx)
     }
 
     // Show transaction payload
-    const tx = await this.disputeManager.populateTransaction[functionName](
-      disputeID,
-    )
-    log.info(JSON.stringify(tx, null, 2))
+    log.info(JSON.stringify(transaction, null, 2))
   }
 
   @confirmResolve
-  async accept(disputeID: string, execute = false): Promise<void> {
+  async accept(
+    disputeID: string,
+    tokensSlash: bigint,
+    execute = false,
+  ): Promise<void> {
     log.info(`Accepting dispute ${disputeID}...`)
-    if (await this.validateStatuteOfLimitations(disputeID)) {
-      await this.commit(disputeID, DisputeResolution.Accept, execute)
-    } else {
+    if (!(await this.validateStatuteOfLimitations(disputeID))) {
       this.showStatuteOfLimitationsError()
+      return
     }
+
+    const transaction =
+      await this.disputeManager.acceptDispute.populateTransaction(
+        disputeID,
+        tokensSlash,
+      )
+    await this.commit(transaction, execute)
+  }
+
+  @confirmResolve
+  async acceptConflict(
+    disputeID: string,
+    tokensSlash: bigint,
+    acceptDisputeInConflict: boolean,
+    tokensSlashRelated: bigint,
+    execute = false,
+  ): Promise<void> {
+    log.info(`Accepting conflict dispute ${disputeID}...`)
+    if (!(await this.validateStatuteOfLimitations(disputeID))) {
+      this.showStatuteOfLimitationsError()
+      return
+    }
+
+    const transaction =
+      await this.disputeManager.acceptDisputeConflict.populateTransaction(
+        disputeID,
+        tokensSlash,
+        acceptDisputeInConflict,
+        tokensSlashRelated,
+      )
+    await this.commit(transaction, execute)
   }
 
   @confirmResolve
   async reject(disputeID: string, execute = false): Promise<void> {
     log.info(`Rejecting dispute ${disputeID}...`)
-    if (await this.validateStatuteOfLimitations(disputeID)) {
-      await this.commit(disputeID, DisputeResolution.Reject, execute)
-    } else {
+    if (!(await this.validateStatuteOfLimitations(disputeID))) {
       this.showStatuteOfLimitationsError()
+      return
     }
+
+    const transaction =
+      await this.disputeManager.rejectDispute.populateTransaction(disputeID)
+    await this.commit(transaction, execute)
   }
 
   @confirmResolve
   async draw(disputeID: string, execute = false): Promise<void> {
     log.info(`Drawing dispute ${disputeID}...`)
-    await this.commit(disputeID, DisputeResolution.Draw, execute)
+    const transaction =
+      await this.disputeManager.drawDispute.populateTransaction(disputeID)
+    await this.commit(transaction, execute)
   }
 }

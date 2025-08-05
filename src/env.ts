@@ -1,16 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Argv } from 'yargs'
-import { Wallet, providers } from 'ethers'
+import { Wallet, JsonRpcProvider } from 'ethers'
 import fetch from 'isomorphic-fetch'
 import { Client, createClient } from '@urql/core'
-import { NetworkContracts, connectContracts } from '@graphprotocol/common-ts'
+import {
+  connectGraphHorizon,
+  connectSubgraphService,
+  GraphHorizonContracts,
+  SubgraphServiceContracts,
+} from '@graphprotocol/toolshed/deployments'
 
 import { PoiChecker } from './poi'
 
 export interface Environment {
-  provider: providers.Provider
-  contracts: NetworkContracts
+  provider: JsonRpcProvider
+  contracts: GraphHorizonContracts & SubgraphServiceContracts
   networkSubgraph: Client
   trustedSubgraph: Client
   poiChecker: PoiChecker
@@ -21,7 +26,7 @@ export const setupEnv = async (
   argv: { [key: string]: any } & Argv['argv'],
 ): Promise<Environment> => {
   // Ethereum
-  let ethereum
+  let ethereum: URL
   try {
     ethereum = new URL(argv.ethereum)
   } catch (err) {
@@ -29,18 +34,30 @@ export const setupEnv = async (
     throw err
   }
 
-  const provider = new providers.StaticJsonRpcProvider({
-    url: ethereum.toString(),
-    user: ethereum.username,
-    password: ethereum.password,
-    allowInsecureAuthentication: true,
-  })
+  const provider = new JsonRpcProvider(ethereum.toString())
   const network = await provider.getNetwork()
 
+  // Address books are optional
+  const horizonAddressBook = argv.horizonAddressBook
+  const subgraphServiceAddressBook = argv.subgraphServiceAddressBook
+
   // Contracts
-  let contracts = undefined
+  let contracts: GraphHorizonContracts & SubgraphServiceContracts
   try {
-    contracts = await connectContracts(provider, network.chainId, null)
+    const horizonContracts = connectGraphHorizon(
+      Number(network.chainId),
+      provider,
+      horizonAddressBook,
+    )
+    const subgraphServiceContracts = connectSubgraphService(
+      Number(network.chainId),
+      provider,
+      subgraphServiceAddressBook,
+    )
+    contracts = {
+      ...horizonContracts,
+      ...subgraphServiceContracts,
+    }
   } catch (err) {
     console.error(
       `Failed to connect to contracts, please ensure you are using the intended Ethereum Network`,

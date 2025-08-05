@@ -1,6 +1,21 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-import { Optional, Model, DataTypes, Sequelize } from 'sequelize'
+// NOTE: Sequelize is not installed as a dependency and this file is unused
+// Commenting out imports to allow compilation
+// import { Optional, Model, DataTypes, Sequelize } from 'sequelize'
+type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+abstract class Model<T, U> {
+  toJSON?(): any
+  static init?: any
+}
+const DataTypes = {
+  STRING: 'STRING',
+  INTEGER: 'INTEGER',
+  BOOLEAN: 'BOOLEAN',
+  DATE: 'DATE',
+  TEXT: 'TEXT',
+} as any
+type Sequelize = any
 
 export interface POIDisputeAttributes {
   indexer: string

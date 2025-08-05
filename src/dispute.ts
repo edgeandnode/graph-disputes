@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import { SubgraphDeploymentID } from '@graphprotocol/common-ts'
-import { BigNumber } from 'ethers'
 
 import { getEpoch, Dispute, GraphNetwork } from './model'
 import { Environment } from './env'
@@ -31,7 +30,7 @@ export type DisputeEntry = {
     indexerSlashableStake: string
     indexingRewardsCollected: string
   }
-  Allocation: {
+  Allocation?: {
     id: string
     createdAtEpoch: number
     createdAtBlock: string
@@ -47,11 +46,19 @@ export type DisputeEntry = {
       number: number
     }
   }
-  POI: {
+  POI?: {
     submitted: string
     match: boolean | string
     previousEpochPOI: boolean | string
     lastEpochPOI: string
+  }
+  Attestation?: {
+    subgraphDeployment: string
+    requestCID: string
+    responseCID: string
+    v: number
+    r: string
+    s: string
   }
 }
 
@@ -103,8 +110,8 @@ export const getDisputeResolutionEpochsLeft = (
   closedAtEpoch: number,
   networkSettings: GraphNetwork,
 ) => {
-  const { currentEpoch, thawingPeriod, epochLength } = networkSettings
-  const thawingPeriodInEpochs = Math.round(thawingPeriod / epochLength)
+  const { currentEpoch, maxThawingPeriod, epochLength } = networkSettings
+  const thawingPeriodInEpochs = Math.round(maxThawingPeriod / epochLength)
   const deadlineEpochs = 2 * thawingPeriodInEpochs
   return deadlineEpochs - (currentEpoch - closedAtEpoch)
 }
@@ -125,6 +132,7 @@ export const populateEntry = async (
   env: Environment,
   networkSettings: GraphNetwork,
   extended = false,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   const { networkSubgraph, provider, poiChecker } = env
 
@@ -132,34 +140,91 @@ export const populateEntry = async (
     dispute.subgraphDeployment.id,
   )
 
-  // Epochs
-  const [lastEpoch, prevEpoch] = await Promise.all([
-    getEpoch(networkSubgraph, dispute.allocation.closedAtEpoch),
-    getEpoch(networkSubgraph, dispute.allocation.closedAtEpoch - 1),
-  ])
+  let indexingRewards = '0'
+  let allocation: DisputeEntry['Allocation']
+  let poi: DisputeEntry['POI']
+  if (dispute.allocation) {
+    // Epochs
+    const [lastEpoch, prevEpoch] = await Promise.all([
+      getEpoch(networkSubgraph, dispute.allocation.closedAtEpoch),
+      getEpoch(networkSubgraph, dispute.allocation.closedAtEpoch - 1),
+    ])
 
-  // Reference POI
-  const [lastBlock, prevBlock]: EthereumBlock[] = await Promise.all([
-    provider.getBlock(lastEpoch.startBlock),
-    provider.getBlock(prevEpoch.startBlock),
-  ])
-  const [lastPoi, prevPoi] = await Promise.all([
-    poiChecker.getPoi(subgraphDeployment, lastBlock, dispute.indexer.id),
-    poiChecker.getPoi(subgraphDeployment, prevBlock, dispute.indexer.id),
-  ])
-  const hasProof = lastPoi && prevPoi
+    // Reference POI
+    const [lastBlock, prevBlock]: EthereumBlock[] = await Promise.all([
+      provider.getBlock(lastEpoch.startBlock),
+      provider.getBlock(prevEpoch.startBlock),
+    ])
+    const [lastPoi, prevPoi] = await Promise.all([
+      poiChecker.getPoi(subgraphDeployment, lastBlock, dispute.indexer.id),
+      poiChecker.getPoi(subgraphDeployment, prevBlock, dispute.indexer.id),
+    ])
+    const hasProof = lastPoi && prevPoi
+    indexingRewards = toGRT(BigInt(dispute.allocation.indexingIndexerRewards))
 
-  const lastActionAgo = relativeDays(dispute.createdAt)
-  const partsPerMillion = 1000000
+    allocation = {
+      id: dispute.allocation.id,
+      createdAtEpoch: dispute.allocation.createdAtEpoch,
+      createdAtBlock: dispute.allocation.createdAtBlockHash,
+      closedAtEpoch: {
+        id: dispute.allocation.closedAtEpoch,
+        startBlock: {
+          hash: lastBlock.hash,
+          number: lastBlock.number,
+        },
+      },
+      closedAtBlock: {
+        hash: dispute.allocation.closedAtBlockHash,
+        number: dispute.allocation.closedAtBlockNumber,
+      },
+    }
+    poi = {
+      submitted: dispute.allocation.poi,
+      match: hasProof
+        ? lastPoi.proof === dispute.allocation.poi ||
+          prevPoi.proof === dispute.allocation.poi
+        : 'Not-Found',
+      previousEpochPOI: hasProof ? prevPoi.proof : 'Not-Found',
+      lastEpochPOI: hasProof ? lastPoi.proof : 'Not-Found',
+    }
+
+    if (extended && hasProof) {
+      poi['Reference'] = {
+        lastEpoch: {
+          id: lastEpoch.id,
+          startBlock: lastEpoch.startBlock,
+          POI: lastPoi.proof,
+          match: styleBoolean(lastPoi.proof === dispute.allocation.poi),
+        },
+        prevEpoch: {
+          id: prevEpoch.id,
+          startBlock: prevEpoch.startBlock,
+          POI: prevPoi.proof,
+          match: styleBoolean(prevPoi.proof === dispute.allocation.poi),
+        },
+      }
+    }
+  }
+
+  let attestation: DisputeEntry['Attestation']
+  if (dispute.attestation) {
+    attestation = {
+      subgraphDeployment: dispute.attestation.subgraphDeployment.id,
+      requestCID: dispute.attestation.requestCID,
+      responseCID: dispute.attestation.responseCID,
+      v: dispute.attestation.v,
+      r: dispute.attestation.r,
+      s: dispute.attestation.s,
+    }
+  }
+
+  const partsPerMillion = 1000000n
   const slashableStake = toGRT(
-    BigNumber.from(dispute.indexer.indexer.stakedTokens)
-      .mul(networkSettings.indexingSlashingPercentage)
-      .div(partsPerMillion),
+    (BigInt(dispute.indexer.indexer.stakedTokens) *
+      BigInt(networkSettings.indexingSlashingPercentage)) /
+      partsPerMillion,
   )
-  const indexingRewards = toGRT(
-    BigNumber.from(dispute.allocation.indexingIndexerRewards),
-  )
-
+  const lastActionAgo = relativeDays(dispute.createdAt)
   const indexerName = dispute.indexer.defaultDisplayName
   const fishermanName = dispute.fisherman.defaultDisplayName
 
@@ -188,52 +253,9 @@ export const populateEntry = async (
       indexerSlashableStake: slashableStake,
       indexingRewardsCollected: indexingRewards,
     },
-    Allocation: {
-      id: dispute.allocation.id,
-      createdAtEpoch: dispute.allocation.createdAtEpoch,
-      createdAtBlock: dispute.allocation.createdAtBlockHash,
-      closedAtEpoch: {
-        id: dispute.allocation.closedAtEpoch,
-        startBlock: {
-          hash: lastBlock.hash,
-          number: lastBlock.number,
-        },
-      },
-      closedAtBlock: {
-        hash: dispute.allocation.closedAtBlockHash,
-        number: dispute.allocation.closedAtBlockNumber,
-      },
-    },
-    POI: {
-      submitted: dispute.allocation.poi,
-      match: hasProof
-        ? lastPoi.proof === dispute.allocation.poi ||
-          prevPoi.proof === dispute.allocation.poi
-        : 'Not-Found',
-      previousEpochPOI: hasProof ? prevPoi.proof : 'Not-Found',
-      lastEpochPOI: hasProof ? lastPoi.proof : 'Not-Found',
-    },
-  }
-
-  // Extended information
-  if (extended) {
-    // Reference POI
-    if (hasProof) {
-      disputeEntry.POI['Reference'] = {
-        lastEpoch: {
-          id: lastEpoch.id,
-          startBlock: lastEpoch.startBlock,
-          POI: lastPoi.proof,
-          match: styleBoolean(lastPoi.proof === dispute.allocation.poi),
-        },
-        prevEpoch: {
-          id: prevEpoch.id,
-          startBlock: prevEpoch.startBlock,
-          POI: prevPoi.proof,
-          match: styleBoolean(prevPoi.proof === dispute.allocation.poi),
-        },
-      }
-    }
+    Allocation: allocation,
+    POI: poi,
+    Attestation: attestation,
   }
 
   return disputeEntry
@@ -242,6 +264,7 @@ export const populateEntry = async (
 export const formatEntry = (
   entry: DisputeEntry,
   networkSettings: GraphNetwork,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Record<string, any> => {
   const resolutionEpochsLeft = getDisputeResolutionEpochsLeft(
     entry.Allocation.closedAtEpoch.id,

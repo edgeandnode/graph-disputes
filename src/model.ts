@@ -21,6 +21,16 @@ export interface Allocation {
   indexingIndexerRewards?: number
 }
 
+export interface Attestation {
+  id: string
+  subgraphDeployment: SubgraphDeployment
+  requestCID: string
+  responseCID: string
+  v: number
+  r: string
+  s: string
+}
+
 export interface SubgraphDeployment {
   id: string
 }
@@ -47,6 +57,7 @@ export interface Dispute {
   subgraphDeployment: SubgraphDeployment
   indexer: Indexer
   fisherman: Fisherman
+  attestation: Attestation
 }
 
 export interface GraphNetwork {
@@ -54,7 +65,7 @@ export interface GraphNetwork {
   minimumDisputeDeposit: number
   querySlashingPercentage: number
   currentEpoch: number
-  thawingPeriod: number
+  maxThawingPeriod: number
   epochLength: number
 }
 
@@ -197,6 +208,17 @@ export const getDispute = async (
               id
               defaultDisplayName
             }
+            attestation {
+              id
+              subgraphDeployment {
+                id
+              }
+              requestCID
+              responseCID
+              v
+              r
+              s
+            }
           }
         }
       `,
@@ -218,7 +240,7 @@ export const getNetworkSettings = async (
             id
             indexingSlashingPercentage
             currentEpoch
-            thawingPeriod
+            maxThawingPeriod
             epochLength
           }
         }
