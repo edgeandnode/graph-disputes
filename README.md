@@ -18,7 +18,7 @@ Have the following at hand:
 - A private key, only for creating disputes
 - Funds for the deposit bond (10k GRT)
 
-The script accepts these values as input and you can change based on the desired environment (Mainnet, Rinkeby, etc.)
+The script accepts these values as input and you can change based on the desired environment (Arbitrum One, Arbitrum Sepolia, etc.)
 
 Create a config file running:
 ```
@@ -155,16 +155,3 @@ A Dispute can have the following results:
 
 - The disputeID is created when the dispute is submitted.
 
-## Contract Addresses
-
-Disputes are created and resolved in the DisputeManager contract. This contract has the permission to slash stake from the Staking contract whenever a dispute is accepted.
-
-### Mainnet
-
-DisputeManager: 0x97307b963662cCA2f7eD50e38dCC555dfFc4FB0b
-https://etherscan.io/address/0x97307b963662cCA2f7eD50e38dCC555dfFc4FB0b#code
-
-### Rinkeby
-
-DisputeManager: 0x4e4B04008C0f7875CDe80e7546d8b3b03Cf1eCf1
-https://rinkeby.etherscan.io/address/0x4e4B04008C0f7875CDe80e7546d8b3b03Cf1eCf1#code
