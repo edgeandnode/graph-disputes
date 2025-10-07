@@ -15,8 +15,8 @@ importers:
         specifier: 0.5.2
         version: 0.5.2
       '@graphprotocol/toolshed':
-        specifier: 0.6.10
-        version: 0.6.10(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+        specifier: 1.0.1
+        version: 1.0.1(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@iarna/toml':
         specifier: ^2.2.5
         version: 2.2.5
@@ -249,8 +249,8 @@ packages:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
 
-  '@graphprotocol/address-book@0.1.0':
-    resolution: {integrity: sha512-QHtpxitV7YCjq8mXx6ruvbSKcwDNiWBFFRJKgAlTCJgebFdfxmovr1GzV8biFB1587gfYmfL8OEU9pafZq3n+g==}
+  '@graphprotocol/address-book@1.0.1':
+    resolution: {integrity: sha512-hI2OjEXAEiaGGS9Geb/HQyUmek0RVISwFL63U7ojmEa6mbtD7ZT4PAdWMp3KT5Q8s1OMY4WiE+ehUsJtkwVleA==}
 
   '@graphprotocol/common-ts@3.0.1':
     resolution: {integrity: sha512-VtNFdTaZsS9vR/IX3aav7Dk6FUT+Lplmfp3d00ErjNf87kj2whT2LMG3tcZta/czcTi42Z9SOX95GsPJSxbM7Q==}
@@ -258,12 +258,15 @@ packages:
   '@graphprotocol/interfaces@0.5.2':
     resolution: {integrity: sha512-dW7odjioGFEO4gFE/vpFVSbwxz+HOtA4OrmnRgAiu7f1uQvjv8FAKuDZNeWR4MkIYHqbEPa4QGj9NtIm4TzLaw==}
 
+  '@graphprotocol/interfaces@0.6.3':
+    resolution: {integrity: sha512-B09TfRa6MweRGsnqTQwmxXHHCJiV4PXgYtBpKSF6Fn8rt8uhd9vDL3eml8yKD57rEZVzun/o5zRaNz7FiQrddw==}
+
   '@graphprotocol/pino-sentry-simple@0.7.1':
     resolution: {integrity: sha512-iccKFdFBjarSp8/liXuK1EtGq8Vwn118tqymbOJBxblecRsi4rOebk63qnL+dK/a0IvxH6h2+RjjWDbRt7UsUA==}
     engines: {node: '>=10'}
 
-  '@graphprotocol/toolshed@0.6.10':
-    resolution: {integrity: sha512-/2Rx2pjv0TmvdrjWJHhwx6nZeBPvfBfilGwzH6qbw3nIh4++vE5yPK7EV/R+Z/zmsVrpn2qLv9VEVtjYU4eDOA==}
+  '@graphprotocol/toolshed@1.0.1':
+    resolution: {integrity: sha512-cYVHZgWblKQFt3zV7Eh6GGui7TBJfAtn+h6JpRf05GV0toGPzfdDNpe3OIA4XOA+5WQAZfbpvkf+gDzlEldQGg==}
 
   '@graphql-typed-document-node/core@3.2.0':
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
@@ -2669,7 +2672,7 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@graphprotocol/address-book@0.1.0': {}
+  '@graphprotocol/address-book@1.0.1': {}
 
   '@graphprotocol/common-ts@3.0.1':
     dependencies:
@@ -2709,6 +2712,8 @@ snapshots:
 
   '@graphprotocol/interfaces@0.5.2': {}
 
+  '@graphprotocol/interfaces@0.6.3': {}
+
   '@graphprotocol/pino-sentry-simple@0.7.1':
     dependencies:
       '@sentry/node': 5.30.0
@@ -2718,10 +2723,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@graphprotocol/toolshed@0.6.10(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
+  '@graphprotocol/toolshed@1.0.1(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
     dependencies:
-      '@graphprotocol/address-book': 0.1.0
-      '@graphprotocol/interfaces': 0.5.2
+      '@graphprotocol/address-book': 1.0.1
+      '@graphprotocol/interfaces': 0.6.3
       '@nomicfoundation/hardhat-ethers': 3.0.8(ethers@6.13.7)(hardhat@2.24.2(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5))
       debug: 4.4.1(supports-color@8.1.1)
       ethers: 6.13.7
