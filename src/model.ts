@@ -69,6 +69,19 @@ export interface GraphNetwork {
   epochLength: number
 }
 
+export interface POISubmission {
+  id: string
+  poi: string
+  publicPoi: string | null
+  submittedAtEpoch: number
+  allocation: {
+    id: string
+    indexer: {
+      id: string
+    }
+  }
+}
+
 export const getEpoch = async (
   networkSubgraph: Client,
   epochID: number,
@@ -249,4 +262,104 @@ export const getNetworkSettings = async (
     )
     .toPromise()
   return result.data.graphNetwork
+}
+
+export const getAllocationsByDeployment = async (
+  networkSubgraph: Client,
+  ipfsHash: string,
+): Promise<{ id: string }[]> => {
+  const allAllocations: { id: string }[] = []
+  let lastId = ''
+
+  while (true) {
+    const result = await networkSubgraph
+      .query(
+        gql`
+          query ($ipfsHash: String!, $lastId: String!) {
+            allocations(
+              first: 1000
+              where: { subgraphDeployment_: { ipfsHash: $ipfsHash }, id_gt: $lastId }
+              orderBy: id
+              orderDirection: asc
+            ) {
+              id
+            }
+          }
+        `,
+        { ipfsHash, lastId },
+      )
+      .toPromise()
+
+    if (result.error) {
+      throw new Error(`Failed to fetch allocations: ${result.error.message}`)
+    }
+
+    const allocations = result.data?.allocations || []
+    if (allocations.length === 0) break
+
+    allAllocations.push(...allocations)
+    lastId = allocations[allocations.length - 1].id
+
+    if (allocations.length < 1000) break
+  }
+
+  return allAllocations
+}
+
+export const getPOISubmissions = async (
+  networkSubgraph: Client,
+  allocationIds: string[],
+): Promise<POISubmission[]> => {
+  if (allocationIds.length === 0) return []
+
+  const allSubmissions: POISubmission[] = []
+  const batchSize = 100
+
+  for (let i = 0; i < allocationIds.length; i += batchSize) {
+    const batch = allocationIds.slice(i, i + batchSize)
+    let lastId = ''
+
+    while (true) {
+      const result = await networkSubgraph
+        .query(
+          gql`
+            query ($allocationIds: [String!]!, $lastId: String!) {
+              poiSubmissions(
+                first: 1000
+                where: { allocation_in: $allocationIds, id_gt: $lastId }
+                orderBy: id
+                orderDirection: asc
+              ) {
+                id
+                poi
+                publicPoi
+                submittedAtEpoch
+                allocation {
+                  id
+                  indexer {
+                    id
+                  }
+                }
+              }
+            }
+          `,
+          { allocationIds: batch, lastId },
+        )
+        .toPromise()
+
+      if (result.error) {
+        throw new Error(`Failed to fetch POI submissions: ${result.error.message}`)
+      }
+
+      const submissions = result.data?.poiSubmissions || []
+      if (submissions.length === 0) break
+
+      allSubmissions.push(...submissions)
+      lastId = submissions[submissions.length - 1].id
+
+      if (submissions.length < 1000) break
+    }
+  }
+
+  return allSubmissions
 }
