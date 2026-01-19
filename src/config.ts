@@ -10,6 +10,7 @@ interface Config {
   ethereumNetwork: string
   networkSubgraphEndpoint: string
   trustedSubgraphEndpoint: string
+  eboSubgraphEndpoint: string
 }
 
 export const initConfig = (config: Config): void => {
@@ -51,6 +52,12 @@ export const addDefaultArgOptions = yargs => {
       type: 'string',
       required: true,
       group: 'Trusted Subgraph',
+    })
+    .option('ebo-subgraph-endpoint', {
+      description: 'Endpoint to query the EBO (Epoch Block Oracle) subgraph',
+      type: 'string',
+      required: false,
+      group: 'EBO Subgraph',
     })
     .option('log-level', {
       description: 'Log level',

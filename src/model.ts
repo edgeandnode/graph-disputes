@@ -82,6 +82,18 @@ export interface POISubmission {
   }
 }
 
+export interface IndexerInfo {
+  id: string
+  url: string | null
+}
+
+export interface EpochBlockNumber {
+  id: string
+  epoch: { id: string }
+  network: { id: string }
+  blockNumber: string
+}
+
 export const getEpoch = async (
   networkSubgraph: Client,
   epochID: number,
@@ -362,4 +374,64 @@ export const getPOISubmissions = async (
   }
 
   return allSubmissions
+}
+
+export const getIndexer = async (
+  networkSubgraph: Client,
+  indexerId: string,
+): Promise<IndexerInfo | null> => {
+  const result = await networkSubgraph
+    .query(
+      gql`
+        query ($indexerId: String!) {
+          indexer(id: $indexerId) {
+            id
+            url
+          }
+        }
+      `,
+      { indexerId: indexerId.toLowerCase() },
+    )
+    .toPromise()
+
+  if (result.error) {
+    throw new Error(`Failed to fetch indexer: ${result.error.message}`)
+  }
+
+  return result.data?.indexer || null
+}
+
+export const getEpochBlockNumber = async (
+  eboSubgraph: Client,
+  epoch: number,
+  chainId: string,
+): Promise<number | null> => {
+  const epochId = epoch.toString()
+  const networkId = chainId.startsWith('eip155:') ? chainId : `eip155:${chainId}`
+
+  const result = await eboSubgraph
+    .query(
+      gql`
+        query ($epochId: String!, $networkId: String!) {
+          networkEpochBlockNumbers(
+            where: {
+              epoch_: { id: $epochId }
+              network_: { id: $networkId }
+            }
+          ) {
+            id
+            blockNumber
+          }
+        }
+      `,
+      { epochId, networkId },
+    )
+    .toPromise()
+
+  if (result.error) {
+    throw new Error(`Failed to fetch epoch block number: ${result.error.message}`)
+  }
+
+  const data = result.data?.networkEpochBlockNumbers
+  return data && data.length > 0 ? parseInt(data[0].blockNumber) : null
 }

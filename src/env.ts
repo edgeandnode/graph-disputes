@@ -18,6 +18,7 @@ export interface Environment {
   contracts: GraphHorizonContracts & SubgraphServiceContracts
   networkSubgraph: Client
   trustedSubgraph: Client
+  eboSubgraph?: Client
   poiChecker: PoiChecker
   account?: Wallet
 }
@@ -79,6 +80,15 @@ export const setupEnv = async (
     requestPolicy: 'network-only',
   })
 
+  // EBO Subgraph (optional)
+  const eboSubgraph = argv.eboSubgraphEndpoint
+    ? createClient({
+        url: argv.eboSubgraphEndpoint,
+        fetch,
+        requestPolicy: 'network-only',
+      })
+    : undefined
+
   // POI Checker
   const poiChecker = new PoiChecker(provider, trustedSubgraph)
 
@@ -90,6 +100,7 @@ export const setupEnv = async (
     contracts,
     networkSubgraph,
     trustedSubgraph,
+    eboSubgraph,
     poiChecker,
     account,
   }
