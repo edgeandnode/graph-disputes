@@ -7,3 +7,5 @@ src/**/*.js
 .env
 .DS_Store
 .vscode
+
+.graph-disputes
