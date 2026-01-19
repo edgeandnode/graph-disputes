@@ -11,7 +11,8 @@
     "experimentalDecorators": true,
     "composite": false,
     "sourceMap": false,
-    "strict": false
+    "strict": false,
+    "skipLibCheck": true
   },
   "include": [
     "src/*.ts",
