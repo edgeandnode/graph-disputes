@@ -12,11 +12,11 @@ importers:
         specifier: 3.0.1
         version: 3.0.1
       '@graphprotocol/interfaces':
-        specifier: 0.5.2
-        version: 0.5.2
+        specifier: 0.6.4
+        version: 0.6.4
       '@graphprotocol/toolshed':
-        specifier: 1.1.1
-        version: 1.1.1(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
+        specifier: 1.1.2
+        version: 1.1.2(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)
       '@iarna/toml':
         specifier: ^2.2.5
         version: 2.2.5
@@ -78,8 +78,8 @@ importers:
         specifier: ^4.0.0
         version: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.0))(eslint@8.57.0)(prettier@2.8.8)
       ethers:
-        specifier: 6.13.7
-        version: 6.13.7
+        specifier: 6.15.0
+        version: 6.15.0
       find-up:
         specifier: ^5.0.0
         version: 5.0.0
@@ -255,18 +255,18 @@ packages:
   '@graphprotocol/common-ts@3.0.1':
     resolution: {integrity: sha512-VtNFdTaZsS9vR/IX3aav7Dk6FUT+Lplmfp3d00ErjNf87kj2whT2LMG3tcZta/czcTi42Z9SOX95GsPJSxbM7Q==}
 
-  '@graphprotocol/interfaces@0.5.2':
-    resolution: {integrity: sha512-dW7odjioGFEO4gFE/vpFVSbwxz+HOtA4OrmnRgAiu7f1uQvjv8FAKuDZNeWR4MkIYHqbEPa4QGj9NtIm4TzLaw==}
-
   '@graphprotocol/interfaces@0.6.4':
     resolution: {integrity: sha512-Gpm3FR9aFgg8ChV7hkU64+97dpi9N4y0cVCh/8z/nUOG7JSzz1fkpYjP1Ql16EUZKKvHzBjor9qsV9asxQUF6Q==}
+
+  '@graphprotocol/interfaces@0.6.6':
+    resolution: {integrity: sha512-6qcssG1XUyoZF7loIwKr0kURLImKquJTddwQLIJLMY/25lO9go9ofVIUp1yTGQCA1JHI7EVr3bswDHj7/aFuyA==}
 
   '@graphprotocol/pino-sentry-simple@0.7.1':
     resolution: {integrity: sha512-iccKFdFBjarSp8/liXuK1EtGq8Vwn118tqymbOJBxblecRsi4rOebk63qnL+dK/a0IvxH6h2+RjjWDbRt7UsUA==}
     engines: {node: '>=10'}
 
-  '@graphprotocol/toolshed@1.1.1':
-    resolution: {integrity: sha512-55XP4k+XqfXTlBzO2wbK54Ll1IFE4pI/KUrAoD6Y4tb5sXOMn77qUxdk09DccfNZpFs761/l0C7SGbpIoP1Rzg==}
+  '@graphprotocol/toolshed@1.1.2':
+    resolution: {integrity: sha512-TjUkCkyFGMdtTqz27A24jxgdrMUTIFeqOENSqZaoHomlQVtmMxxNtQdWrxk7uD7RgRLXGC+87U4IYhcdRXzHtg==}
 
   '@graphql-typed-document-node/core@3.2.0':
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
@@ -2708,9 +2708,9 @@ snapshots:
       - tedious
       - utf-8-validate
 
-  '@graphprotocol/interfaces@0.5.2': {}
-
   '@graphprotocol/interfaces@0.6.4': {}
+
+  '@graphprotocol/interfaces@0.6.6': {}
 
   '@graphprotocol/pino-sentry-simple@0.7.1':
     dependencies:
@@ -2721,10 +2721,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@graphprotocol/toolshed@1.1.1(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
+  '@graphprotocol/toolshed@1.1.2(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5)':
     dependencies:
       '@graphprotocol/address-book': 1.1.0
-      '@graphprotocol/interfaces': 0.6.4
+      '@graphprotocol/interfaces': 0.6.6
       '@nomicfoundation/hardhat-ethers': 3.1.2(ethers@6.15.0)(hardhat@2.27.0(ts-node@10.9.2(@types/node@14.18.63)(typescript@4.9.5))(typescript@4.9.5))
       debug: 4.4.1(supports-color@8.1.1)
       ethers: 6.15.0

@@ -20,6 +20,10 @@ interface MyArgs {
 const myMiddleware: MiddlewareFunction<MyArgs> = async (
   argv: Arguments<MyArgs>,
 ) => {
+  // Skip environment setup for the setup command
+  if (argv._[0] === 'setup') {
+    return
+  }
   argv.env = await setupEnv(argv)
 }
 
