@@ -1,27 +1,28 @@
 # Graph Disputes CLI
 
-This script makes it easy to manage disputes for wrong indexing proofs and bad query responses.
+This CLI makes it easy to manage disputes for wrong indexing proofs and bad query responses.
 
 ## Setup
 
 The CLI facilitates the interaction with the Graph Network contracts and adds validations before submitting a dispute.
 
 ```bash
-npm i -g @graphprotocol/graph-disputes
+pnpm i -g @graphprotocol/graph-disputes
 ```
 
 Have the following at hand:
 
-- Endpoint to query for trusted POIs
 - Ethereum node RPC-URL
-- Network subgraph URL
-- A private key, only for creating disputes
+- Network subgraph endpoint
+- Trusted POI subgraph endpoint
+- EBO (Epoch Block Oracle) subgraph endpoint (optional, for POI queries)
+- A private key (only for creating disputes)
 - Funds for the deposit bond (10k GRT)
 
 The script accepts these values as input and you can change based on the desired environment (Arbitrum One, Arbitrum Sepolia, etc.)
 
 Create a config file running:
-```
+```bash
 graph-disputes setup
 ```
 
@@ -32,23 +33,72 @@ This will store a configuration file with the default endpoints to use for query
 Run `graph-disputes` with no parameters to see a list of commands.
 
 ```bash
-# Init
-graph-dispute setup
+# Setup
+graph-disputes setup
 
-# General
+# List and show disputes
 graph-disputes list [--status <accepted|rejected|draw|undecided|all>]
 graph-disputes show <disputeID>
 
-# Fisherman
-graph-disputes create indexing <allocationID> <deposit>
-graph-disputes create query <attestation> <deposit>
+# Inspect allocation
+graph-disputes inspect <allocationID>
 
-# Arbitrator
+# POI commands
+graph-disputes poi list <deployment> [--indexer <address>...]
+graph-disputes poi query <deployment> --epoch <n|range> --chain <chainId> --indexer <address>...
+
+# Create disputes (Fisherman)
+graph-disputes create indexing <allocationID> <poi> <blockNumber>
+graph-disputes create query <attestation>
+
+# Resolve disputes (Arbitrator)
 graph-disputes resolve reject <disputeID>
 graph-disputes resolve accept <disputeID>
 graph-disputes resolve draw <disputeID>
-graph-disputes resolve verify <payload>
 ```
+
+## POI Commands
+
+The `poi` commands help investigate POI (Proof of Indexing) discrepancies before filing a dispute.
+
+### poi list
+
+List submitted POI submissions for a deployment, grouped by epoch and publicPoi:
+
+```bash
+graph-disputes poi list QmdDSA73QkFAvRZqtRoHgLvxonuSZTuJhoWkmBtEdVuTmz
+```
+
+Filter by specific indexers to compare:
+```bash
+graph-disputes poi list QmdDSA73QkFAvRZqtRoHgLvxonuSZTuJhoWkmBtEdVuTmz \
+  --indexer 0x123... \
+  --indexer 0x456...
+```
+
+Epochs with multiple different POIs are flagged with `[POI MISMATCH]`.
+
+### poi query
+
+Query indexers directly for their live POI calculation at a specific epoch:
+
+```bash
+graph-disputes poi query QmdDSA73QkFAvRZqtRoHgLvxonuSZTuJhoWkmBtEdVuTmz \
+  --epoch 1132 \
+  --chain 43114 \
+  --indexer 0x123...
+```
+
+Query a range of epochs:
+```bash
+graph-disputes poi query QmdDSA73QkFAvRZqtRoHgLvxonuSZTuJhoWkmBtEdVuTmz \
+  --epoch 1130-1135 \
+  --chain 43114 \
+  --indexer 0x123... \
+  --indexer 0x456...
+```
+
+This command requires the EBO subgraph endpoint to be configured (to resolve epoch → block number).
 
 
 ## Disputes
@@ -64,7 +114,7 @@ Anyone can dispute an allocationID if they think the POI is wrong. To do so, you
 For example:
 
 ```bash
-graph-dispute create indexing 0x1ba0b254146759a5680a6f11919192a605569816 10000
+graph-disputes create indexing 0x1ba0b254146759a5680a6f11919192a605569816 0xabc123...poi 12345678
 ```
 
 #### Conditions
@@ -100,7 +150,7 @@ If you consider that the query response is invalid, you can submit a dispute pas
 For example:
 
 ```bash
-graph-dispute create query 0xd902c18a1b3590a3d2a8ae4439db376764fda153ca077e339d0427bf776bd463be0b5ae5f598fdf631133571d59ef16b443b2fe02e35ca2cb807158069009db94d31d21d389263c98d1e83a031e8fed17cdcef15bd62ee8153f34188a83c7b1cafbcf5d1b7c0ff3f6045d76ad34c0e616c5366bf47d82b41da96d7fc5d844dcf2f65e6b5ae86d43669197a189ad11afa2c661f787fca2a43b2a2c22938b1a0a91c 10000 \
+graph-disputes create query 0xd902c18a1b3590a3d2a8ae4439db376764fda153ca077e339d0427bf776bd463be0b5ae5f598fdf631133571d59ef16b443b2fe02e35ca2cb807158069009db94d31d21d389263c98d1e83a031e8fed17cdcef15bd62ee8153f34188a83c7b1cafbcf5d1b7c0ff3f6045d76ad34c0e616c5366bf47d82b41da96d7fc5d844dcf2f65e6b5ae86d43669197a189ad11afa2c661f787fca2a43b2a2c22938b1a0a91c
 ```
 
 In addition to that you will need to post the original request you sent that matches the _requestCID_, that way anyone can verify if the returned data is valid.
@@ -126,7 +176,7 @@ The Arbitration process is managed by a Multisig that can be changed anytime by 
 The `list` command shows you the active (undecided) disputes:
 
 ```bash
-graph-dispute list
+graph-disputes list
 ```
 
 **Result:**

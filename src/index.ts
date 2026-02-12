@@ -12,6 +12,7 @@ import { resolveCommand } from './commands/resolve'
 import { listCommand } from './commands/list'
 import { showCommand } from './commands/show'
 import { inspectCommand } from './commands/inspect'
+import { poiCommand } from './commands/poi'
 
 interface MyArgs {
   env: Environment
@@ -46,5 +47,6 @@ yargs
   .command(showCommand)
   .command(resolveCommand)
   .command(inspectCommand)
+  .command(poiCommand)
   .demandCommand(1, 'Choose a command from the above list')
   .help().argv

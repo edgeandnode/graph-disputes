@@ -57,6 +57,11 @@ export const setupCommand = {
           answers['network-subgraph-endpoint'],
         validate: isValidURL,
       },
+      {
+        name: 'ebo-subgraph-endpoint',
+        message: 'EBO Subgraph Endpoint (optional, press enter to skip)',
+        validate: (value: string) => value === '' || isValidURL(value),
+      },
     ])
     // Save config file
     log.info(`Saving config file (${DEFAULT_CONFIG_PATH})...`)
@@ -65,6 +70,7 @@ export const setupCommand = {
       ethereumNetwork: res['ethereum-network'],
       networkSubgraphEndpoint: res['network-subgraph-endpoint'],
       trustedSubgraphEndpoint: res['trusted-subgraph-network'],
+      eboSubgraphEndpoint: res['ebo-subgraph-endpoint'] || '',
     })
     log.info('Done!')
   },
